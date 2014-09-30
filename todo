@@ -1,0 +1,149 @@
+ext.robospock = [
+    // Project under testing:
+    project:   ':App',
+    buildType: 'debug',
+
+    // Testing framework versions.
+    groovyVersion:        '2.3.3',
+    spockVersion:         '0.7-groovy-2.0',
+    roboSpockVersion:     '0.5.0',
+    clibVersion:          '3.1',
+    objenesisVersion:     '2.1'
+]
+
+ext.sdkDir = project( robospock.project ).android.sdkDirectory
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven { url "${sdkDir}/extras/android/m2repository" }
+    maven { url "${sdkDir}/extras/google/m2repository" }
+}
+
+apply plugin: 'groovy'
+
+/*
+ * Spock dependencies.
+ */
+dependencies {
+    testCompile "org.codehaus.groovy:groovy-all:${robospock.groovyVersion}"
+    testCompile "org.spockframework:spock-core:${robospock.spockVersion}"
+    testCompile "org.robospock:robospock:${robospock.roboSpockVersion}"
+    testCompile "cglib:cglib-nodep:${robospock.clibVersion}"
+    testCompile "org.objenesis:objenesis:${robospock.objenesisVersion}"
+}
+
+/*
+ * Paths, Task names, etc.
+ */ 
+def manifestPath = "src/main/AndroidManifest.xml"
+def libsPath = "build/libs"
+def intermediatesPath = 'build/intermediates/'
+def aarPath = intermediatesPath + "exploded-aar/"
+def resPath = intermediatesPath + 'res/' + robospock.buildType
+def assetsPath = resPath + '/raw'
+def classesPath = intermediatesPath + 'classes/' + robospock.buildType
+def zip2jarDependsTask = 'compile' + robospock.buildType.capitalize() + 'Java'
+def zip2jarDescription = "Zips for Robospock."
+
+def isAndroid( Project proj ) {
+    return proj.plugins.hasPlugin( "android" ) || proj.plugins.hasPlugin( "android-library" )
+}
+
+def findAndroidProjects(Project project) {
+    project.allprojects.findAll { isAndroid( it ) }
+}
+
+def findProjectByDependency(Project project, DefaultProjectDependency dependency) {
+    project.rootProject.allprojects.find { it.name == dependency.dependencyProject.name }
+}
+def findCompileDependencies(Project androidProject) {
+    androidProject.configurations.all.find {
+        it.name == 'compile'
+    }.getAllDependencies()
+}
+def findLibraryDependencies(Project androidProject) {
+    findCompileDependencies(androidProject).findAll { it instanceof DefaultProjectDependency }
+}
+
+// ----------- extract all libraries --------------
+def getSubprojects(Project androidProject) {
+    def projects = []
+    extractSubprojects(androidProject, projects)
+    projects
+}
+
+def extractSubprojects(Project libraryProject, List<Project> projects) {
+    def projectLibraryDependencies = findLibraryDependencies(libraryProject)
+    def collect = projectLibraryDependencies.collect {
+        findProjectByDependency(libraryProject, it)
+    }
+    collect.each { extractSubprojects(it, projects) }
+    projects.addAll(collect)
+}
+
+// ----------- end of section --------------
+
+/*
+ * Find & Add dependencies.
+ */
+def androidProject = project( robospock.project )
+def projDep = androidProject + getSubprojects( androidProject )
+
+projDep.each { proj ->
+    // Create zip2jar task & make compileJava depend on it.
+    def zip2jar = proj.tasks.create( name: 'zip2jar', type: Zip ) {
+        dependsOn zip2jarDependsTask
+        description zip2jarDescription
+        from classesPath
+        destinationDir = file( libsPath )
+        extension = "jar"
+    }
+    tasks.compileJava.dependsOn( zip2jar )
+
+    // Add all jars frm zip2jar + exploded-aar:s to dependencies.
+    project.dependencies {
+        compile fileTree( dir: proj.file( libsPath ), include: "*.jar" )
+        // this part is really ugly
+        // XXX question for pjakubczyk@ why dependencies registered via compile are not visible?
+        // ie. the following line:
+        //    compile 'com.android.support:appcompat-v7:20.0.0'
+        // does nothing :-/
+        compile fileTree( dir: proj.file( aarPath ), include: ['*/*/*/*.jar'] )
+        compile fileTree( dir: proj.file( aarPath ), include: ['*/*/*/*/*.jar'] )
+    }
+}
+
+/*
+ * Setup test.
+ */
+test {
+    // enable TestNG support (default is JUnit)
+
+    // set a system property for the test JVM(s)
+    systemProperty 'ro.build.date.utc', '1'
+    systemProperty 'ro.kernel.qemu', '0'
+    // explicitly include or exclude tests
+
+    systemProperty 'android.manifest', androidProject.file( manifestPath )
+    systemProperty 'android.resources', androidProject.file( resPath )
+    systemProperty 'android.assets', androidProject.file( assetsPath )
+
+    // set heap size for the test JVM(s)
+    minHeapSize = "128m" // try with 64mb, might decrease startup time
+    maxHeapSize = "1024m"
+
+    // set JVM arguments for the test JVM(s)
+    jvmArgs '-XX:MaxPermSize=512m'
+
+    // listen to events in the test execution lifecycle
+    beforeTest { descriptor ->
+        logger.lifecycle( "Running test: " + descriptor )
+    }
+
+    testLogging {
+        lifecycle {
+            exceptionFormat "full"
+        }
+    }
+}
