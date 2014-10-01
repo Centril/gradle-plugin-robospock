@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.toxbee.lgio
+package se.toxbee.robospock
 
-import javax.swing.JTextField;
+import org.gradle.api.Action
+import org.gradle.api.Project
 
 /**
- * LGIOTextProvider uses Console.readLine or a JTextField.
+ * {@link RoboSpockAction}: Performs the actual work of the plugin.
+ * See {@link RoboSpockPlugin} for documentation on usage.
  *
  * @version 0.1
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
  */
-class LGIOTextProvider extends LGIOInputProvider.Base {
+class RoboSpockAction implements Action<Project> {
 	@Override
-	JTextField generateInput() { new JTextField() }
+	void execute( Project project ) {
 
-	@Override
-	String getData() { input.getText() }
-
-	@Override
-	String readConsole( Console c, String print ) { c.readLine( print ) }
+	}
 }

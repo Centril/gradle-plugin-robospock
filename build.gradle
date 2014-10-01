@@ -31,115 +31,109 @@ task wrapper( type: Wrapper ) {
 task cleanMaven( type: Delete ) { delete 'maven-deploy' }
 task cleanOutput( type: Delete ) { delete 'classes' }
 
-project( ':se.toxbee-robospock' ) {
-	apply plugin: 'groovy'
+apply plugin: 'groovy'
 
-	group = g
-	version = v
+group = g
+version = v
 
-	/*
-	 * Tasks for clearing:
-	 */
-	task cleanAll(dependsOn: [clean, cleanMaven, cleanOutput]) {}
-	task c(dependsOn: cleanAll)
+/*
+ * Tasks for clearing:
+ */
+task cleanAll(dependsOn: [clean, cleanMaven, cleanOutput]) {}
+task c(dependsOn: cleanAll)
 
-	/*
-	 * Testing config:
-	 */
-	apply plugin: 'groovy'
+/*
+ * Testing config:
+ */
+apply plugin: 'groovy'
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile gradleApi()
+	compile localGroovy()
+    testCompile "org.spockframework:spock-core:${spock.spockVersion}"
+    testCompile "cglib:cglib-nodep:${spock.clibVersion}"
+    testCompile "org.objenesis:objenesis:${spock.objenesisVersion}"
+}
+
+/*
+ * Publishing config:
+ */
+apply plugin: 'maven-publish'
+build.finalizedBy publish
+
+// javadoc.jar generation
+task sourceJar (type : Jar) {
+	classifier = 'sources'
+	from sourceSets.main.allSource
+}
+
+// sources.jar generation
+task javadocJar (type: Jar, dependsOn: javadoc) {
+	classifier = 'javadoc'
+	from javadoc.destinationDir
+}
+
+def getMavenArtifacts = {
+	return [sourceJar, javadocJar]
+}
+
+publishing {
 	repositories {
-		mavenCentral()
-	}
-
-	dependencies {
-		compile gradleApi()
-		compile localGroovy()
-	    testCompile "org.spockframework:spock-core:${spock.spockVersion}"
-	    testCompile "cglib:cglib-nodep:${spock.clibVersion}"
-	    testCompile "org.objenesis:objenesis:${spock.objenesisVersion}"
-	}
-
-	/*
-	 * Publishing config:
-	 */
-	apply plugin: 'maven-publish'
-	build.finalizedBy publish
-
-	// javadoc.jar generation
-	task sourceJar (type : Jar) {
-		classifier = 'sources'
-		from sourceSets.main.allSource
-	}
-
-	// sources.jar generation
-	task javadocJar (type: Jar, dependsOn: javadoc) {
-		classifier = 'javadoc'
-		from javadoc.destinationDir
-	}
-
-	def getMavenArtifacts = {
-		return [sourceJar, javadocJar]
-	}
-
-	publishing {
-		repositories {
-			maven {
-				url uri( "../maven-deploy" )
-			}
+		maven {
+			url uri( "../maven-deploy" )
 		}
+	}
 
-		publications {
-			maven (MavenPublication) {
-				from components.java
+	publications {
+		maven (MavenPublication) {
+			from components.java
 
-				getMavenArtifacts().each { ar ->
-					artifact( ar ) {
-						classifier = ar.classifier
-					}
+			getMavenArtifacts().each { ar ->
+				artifact( ar ) {
+					classifier = ar.classifier
 				}
+			}
 
-				def gitrepo = "centril/gradle-plugin-robospock.git"
-				def giturl = "http://github.com/${gitrepo}"
-				def gitconn = "scm:git:git@github.com:${gitrepo}"
+			def gitrepo = "centril/gradle-plugin-robospock.git"
+			def giturl = "http://github.com/${gitrepo}"
+			def gitconn = "scm:git:git@github.com:${gitrepo}"
 
-				pom.withXml {
-					asNode().children().last() + {
-						resolveStrategy = Closure.DELEGATE_FIRST
-						name 'gradle-plugin-robospock'
-						description 'gradle-plugin-robospock: gradle plugin for robospock setup.'
+			pom.withXml {
+				asNode().children().last() + {
+					resolveStrategy = Closure.DELEGATE_FIRST
+					name 'gradle-plugin-robospock'
+					description 'gradle-plugin-robospock: gradle plugin for robospock setup.'
+					url giturl
+					scm {
 						url giturl
-						scm {
-							url giturl
-							connection gitconn
-							developerConnection gitconn
+						connection gitconn
+						developerConnection gitconn
+					}
+					inceptionYear '2014'
+					licenses {
+						license {
+							name 'The Apache Software License, Version 2.0'
+							url 'http://www.apache.org/license/LICENSE-2.0.txt'
+							distribution 'repo'
 						}
-						inceptionYear '2014'
-						licenses {
-							license {
-								name 'The Apache Software License, Version 2.0'
-								url 'http://www.apache.org/license/LICENSE-2.0.txt'
-								distribution 'repo'
-							}
+					}
+					developers {
+						developer {
+							id 'toxbee'
+							name 'toxbee.se'
+							email 'teamoxbee@gmail.com'
 						}
-						developers {
-							developer {
-								id 'toxbee'
-								name 'toxbee.se'
-								email 'teamoxbee@gmail.com'
-							}
-							developer {
-								id 'Centril'
-								name 'Mazdak Farrokhzad'
-								email 'twingoow@gmail.com'
-							}
+						developer {
+							id 'Centril'
+							name 'Mazdak Farrokhzad'
+							email 'twingoow@gmail.com'
 						}
 					}
 				}
 			}
 		}
-	}
-
-	apply plugin: 'shadow'
-	publish {
 	}
 }

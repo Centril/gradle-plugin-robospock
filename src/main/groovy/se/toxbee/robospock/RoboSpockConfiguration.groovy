@@ -13,32 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package se.toxbee.lgio
-
-import javax.swing.JPasswordField
-import javax.swing.JTextField
+package se.toxbee.robospock
 
 /**
- * LGIOPasswordProvider uses Console.readPassword or a JPasswordField.
+ * {@link RoboSpockConfiguration} determines how
+ * the {@link RoboSpockPlugin} should be used.
  *
  * @version 0.1
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
  */
-class LGIOPasswordProvider extends LGIOInputProvider.Base {
-	@Override
-	JTextField generateInput() { new JPasswordField() }
-
-	@Override
-	String getData() {
-		def char[] pwd = ((JPasswordField) input).getPassword()
-		def retr = new String( pwd )
-		// Clear pwd for security.
-		for ( int i = 0; i < pwd.length; ++i ) {
-			pwd[i] = 0;
-		}
-		return retr
-	}
-
-	@Override
-	String readConsole( Console c, String print ) { new String( c.readPassword( print ) ) }
+class RoboSpockConfiguration {
 }
