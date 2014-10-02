@@ -16,11 +16,9 @@
 
 package se.toxbee.robospock
 
-import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.Test
-
 /**
  * {@link RoboSpockTest} is the test task.
  *
@@ -43,7 +41,6 @@ class RoboSpockTest extends Test {
 	 * Properties:
 	 */
 
-	Project android
 	RoboSpockConfiguration config
 
 	/*
@@ -60,9 +57,11 @@ class RoboSpockTest extends Test {
 		systemProperty 'ro.build.date.utc', '1'
 		systemProperty 'ro.kernel.qemu', '0'
 
-		systemProperty 'android.manifest', androidProject.file( manifestPath )
-		systemProperty 'android.resources', androidProject.file( "build/intermediates/res/${config.buildType}" )
-		systemProperty 'android.assets', androidProject.file( "build/intermediates/res/${config.buildType}/raw" )
+		def android = config.android
+
+		systemProperty 'android.manifest', android.android.file( manifestPath )
+		systemProperty 'android.resources', android.file( "build/intermediates/res/${config.buildType}" )
+		systemProperty 'android.assets', android.file( "build/intermediates/res/${config.buildType}/raw" )
 
 		// set heap size for the test JVM(s)
 		minHeapSize = "128m"
@@ -83,7 +82,7 @@ class RoboSpockTest extends Test {
 		}
 
 		// Set working directory.
-		workingDir = "${androidProject.projectDir}/${mainPath}"
+		workingDir = "${android.projectDir}/${mainPath}"
 
 		// Make check depend on this task.
 		getProject().getTasks().getByName( JavaBasePlugin.CHECK_TASK_NAME ).dependsOn( this )

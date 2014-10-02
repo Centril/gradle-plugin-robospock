@@ -16,6 +16,11 @@
 
 package se.toxbee.robospock
 
+import org.gradle.api.GradleException
+import org.gradle.api.Project
+
+import java.util.regex.Pattern
+
 /**
  * {@link RoboSpockConfiguration} determines how
  * the {@link RoboSpockPlugin} should be used.
@@ -25,47 +30,239 @@ package se.toxbee.robospock
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
  */
 class RoboSpockConfiguration {
+	//================================================================================
+	// Gradle DSL
+	//================================================================================
+
 	/**
-	 * (Required) The application under test.
+	 * (Required) The path of the android {@link Project} under test.
+	 * Either this has to be set, or {@link #android}
 	 */
-	def String project
+	String testing
+
+	/**
+	 * (Required) The the android {@link Project} under test.
+	 * Either this has to be set, or {@link #testing}
+	 */
+	Project android
 
 	/**
 	 * (Optional) The buildType being tested.
 	 * Default = 'debug'
 	 * @
 	 */
-	def String buildType        = 'debug'
+	String buildType        = 'debug'
 
 	/**
 	 * (Optional) The robospock version to use.
 	 * Default: Latest known version (0.5.+)
 	 */
-	def String robospockVersion = '0.5.+'
+	String robospockVersion = '0.5.+'
 
 	/**
 	 * (Optional) The spock-framework version to use.
 	 * Default: Latest known version (0.7-groovy-2.0)
 	 */
-	def String spockVersion     = '0.7-groovy-2.0'
+	String spockVersion     = '0.7-groovy-2.0'
 
 	/**
 	 * (Optional) The groovy version to use.
 	 * Default: Latest known version (2.3.+).
 	 */
-	def String groovyVersion    = '2.3.+'
+	String groovyVersion    = '2.3.+'
 
 	/**
 	 * (Optional) The clib version to use as dependency.
 	 * Default: Latest known version (3.1).
 	 * If the dependency is unwanted, set the string to empty.
 	 */
-	def String clibVersion      = '3.1'
+	String clibVersion      = '3.1'
 
 	/**
 	 * (Optional) The objenesis version to use as dependency.
 	 * Default: Latest known version (2.1).
 	 * If the dependency is unwanted, set the string to empty.
 	 */
-	def String objenesisVersion = '2.1'
+	String objenesisVersion = '2.1'
+
+	//================================================================================
+	// Public non-DSL API:
+	//================================================================================
+
+	public RoboSpockConfiguration( Project proj ) {
+		project = proj
+	}
+
+	/**
+	 * Sets the path of the android {@link Project} being tested.
+	 *
+	 * @param t the path of the android {@link Project}.
+	 */
+	public void setTesting( String t ) {
+		this.setAndroid( project.project( t ) )
+	}
+
+	/**
+	 * Sets the android {@link Project}.
+	 *
+	 * @param a the android {@link Project} to set.
+	 * @throws GradleException if not an android project.
+	 */
+	public void setAndroid( Project a ) {
+		if ( !isAndroid( a ) ) {
+			throw new GradleException( a.toString() + " is not an android project" )
+		}
+		android( a )
+	}
+
+	/**
+	 * Returns the android {@link Project} to test.
+	 *
+	 * @return the android {@link Project}.
+	 * @throws GradleException if an android project could not be resolved.
+	 */
+	public Project getAndroid() {
+		if ( !this.android ) {
+			// Make an attempt to guess the android project.
+			if ( !android( findAndroidProject() ) ) {
+				throw new GradleException( "RoboSpock: could not guess project and no project found in robospock.testing, please set it!" )
+			}
+
+		}
+
+		return this.android
+	}
+
+	/**
+	 * Verifies that the configuration is sound.
+	 *
+	 * @return the android {@link Project}.
+	 */
+	public Project verify() {
+		def a = this.getAndroid()
+		this.verifyBuildType()
+		return a
+	}
+
+	/**
+	 * Adds all the dependencies of this configuration to {@link #project}.
+	 */
+	public void addDependencies() {
+		def deps = [
+				"org.codehaus.groovy:groovy-all:${this.groovyVersion}",
+				"org.spockframework:spock-core:${this.spockVersion}",
+				"org.robospock:robospock:${this.robospockVersion}"
+		]
+
+		this.clibVersion = this.clibVersion.trim()
+		if ( this.clibVersion ) {
+			deps << "cglib:cglib-nodep:${this.clibVersion}"
+		}
+
+		this.objenesisVersion = this.objenesisVersion.trim()
+		if ( this.objenesisVersion ) {
+			deps << "cglib:cglib-nodep:${this.objenesisVersion}"
+		}
+
+		deps.each { dep ->
+			this.project.dependencies {
+				testCompile dep
+			}
+		}
+	}
+
+	/**
+	 * Applies the groovy plugin to {@link #project}.
+	 */
+	public void applyGroovy() {
+		this.project.plugins.apply( 'groovy' )
+	}
+
+	/**
+	 * Adds the android SDK dir repositories to {@link #project}.
+	 */
+	public void addAndroidRepositories() {
+		def sdkDir = this.android.android.sdkDirectory
+
+		this.project.repositories {
+			maven { url "${sdkDir}/extras/android/m2repository" }
+			maven { url "${sdkDir}/extras/google/m2repository" }
+		}
+	}
+
+	//================================================================================
+	// Internal logic, setters, etc.
+	//================================================================================
+
+	/**
+	 * The suffix to remove from {@link #project}.path
+	 */
+	private static final Pattern PROJECT_SUFFIX_REMOVE = ~/[^(?!_)\w]?test$/
+
+	/**
+	 * The {@link Project} that the configuration is being applied on.
+	 */
+	private Project project
+	/**
+	 * Verify that the buildType exists.
+	 */
+	private void verifyBuildType() {
+		// Verify that the buildType specified exists.
+		if ( !this.android.android.buildTypes.find { it.name == buildType } ) {
+			throw new GradleException( "Specified buildType: " + buildType + ' does not exist.' )
+		}
+	}
+
+	/**
+	 * Internal: sets the android DSL property without checks.
+	 *
+	 * @param a the android {@link Project}
+	 * @return the android {@link Project}
+	 */
+	private Project android( Project a ) {
+		this.android = a
+		this.testing = a.path
+		return a
+	}
+
+	/**
+	 * Finds an android project that is either the parent of {@link #project}
+	 * or has a similar path/name as {@link #project}
+	 *
+	 * @return an android project, or null if none found.
+	 */
+	private Project findAndroidProject() {
+		def aspirant = project.getParent()
+		if ( aspirant != null ) {
+			// Parent == android? Found it!
+			if ( !isAndroid( aspirant ) ) {
+				// Look in subprojects of parents.
+				def tryPath = tryPath()
+				if ( tryPath.length() < project.path.length() ) {
+					aspirant = aspirant.subprojects.find { it.path == tryPath && isAndroid( it ) }
+				}
+			}
+		}
+
+		return aspirant
+	}
+
+	/**
+	 * Returns a path that assumes that the PROJECT_SUFFIX_REMOVE removed is an android {@link #project}.
+	 *
+	 * @return the path to try for an android {@link #project}.
+	 */
+	private String tryPath() {
+		this.project.path - PROJECT_SUFFIX_REMOVE
+	}
+
+	/**
+	 * Checks if the provided project is an android or android-library project.
+	 *
+	 * @param project The {@link Project} to check.
+	 * @return true if it is.
+	 */
+	private boolean isAndroid( Project project ) {
+		return project.plugins.hasPlugin( "android" ) || project.plugins.hasPlugin( "android-library" )
+	}
 }
