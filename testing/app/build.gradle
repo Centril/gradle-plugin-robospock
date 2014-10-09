@@ -30,9 +30,6 @@ repositories {
 apply plugin: 'com.android.application'
 
 android {
-    dexOptions {
-        preDexLibraries = false
-    }
 	buildTypes {
 		defaultConfig {
 			minSdkVersion 9
