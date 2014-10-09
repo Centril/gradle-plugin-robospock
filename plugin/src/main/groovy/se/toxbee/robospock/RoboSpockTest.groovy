@@ -29,16 +29,6 @@ import org.gradle.api.tasks.testing.Test
  */
 class RoboSpockTest extends Test {
 	/*
-	 * Paths, Task names, etc.:
-	 */
-
-	public static String robospockTaskName = 'robospock'
-	public static final String ROBOSPOCK_TASK_DESCRIPTION = 'Runs the unit tests using RoboSpock.'
-
-	public static String manifestPath = 'src/main/AndroidManifest.xml'
-	public static String mainPath = 'src/main'
-
-	/*
 	 * Properties:
 	 */
 
@@ -50,9 +40,21 @@ class RoboSpockTest extends Test {
 
 	@TaskAction
 	public void executeTests() {
-		setName         robospockTaskName
-		setDescription  ROBOSPOCK_TASK_DESCRIPTION
+		def p = config.project
+
+		// Make check depend on this task.
+		p.tasks.getByName( JavaBasePlugin.CHECK_TASK_NAME ).dependsOn( this )
+
+		/*
+		 * Naming:
+		 */
+
+		setDescription  'Runs the unit tests using RoboSpock.'
 		setGroup        JavaBasePlugin.VERIFICATION_GROUP
+
+		/*
+		 * Setup for Roboelectric:
+		 */
 
 		// set a system property for the test JVM(s)
 		systemProperty 'ro.build.date.utc', '1'
@@ -60,9 +62,17 @@ class RoboSpockTest extends Test {
 
 		def android = config.android
 
-		systemProperty 'android.manifest', android.android.file( manifestPath )
 		systemProperty 'android.resources', android.file( "build/intermediates/res/${config.buildType}" )
 		systemProperty 'android.assets', android.file( "build/intermediates/res/${config.buildType}/raw" )
+		systemProperty 'android.manifest', android.file( "build/intermediates/manifests/full/${config.buildType}/AndroidManifest.xml" )
+		def wd = android.file( 'src/main' )
+		if ( wd.exists() ) {
+			workingDir = wd
+		}
+
+		/*
+		 * Test JVM settings:
+		 */
 
 		// set heap size for the test JVM(s)
 		minHeapSize = "128m"
@@ -71,21 +81,34 @@ class RoboSpockTest extends Test {
 		// set JVM arguments for the test JVM(s)
 		jvmArgs '-XX:MaxPermSize=512m'
 
+		/*
+		 * Logging:
+		 */
+
 		// listen to events in the test execution lifecycle
 		beforeTest { descriptor ->
 			logger.lifecycle( "Running test: " + descriptor.toString() )
 		}
 
 		testLogging {
-			lifecycle {
+			// set options for log level LIFECYCLE
+			events "failed"
+			exceptionFormat "short"
+			// set options for log level DEBUG
+			debug {
+				events "started", "skipped", "failed"
 				exceptionFormat "full"
 			}
+
+			// remove standard output/error logging from --info builds
+			// by assigning only 'failed' and 'skipped' events
+			info.events = ["failed", "skipped"]
 		}
 
-		// Set working directory.
-		workingDir = "${android.projectDir}/${mainPath}"
+		/*
+		 * Execute tests:
+		 */
 
-		// Make check depend on this task.
-		getProject().getTasks().getByName( JavaBasePlugin.CHECK_TASK_NAME ).dependsOn( this )
+		super.executeTests()
 	}
 }

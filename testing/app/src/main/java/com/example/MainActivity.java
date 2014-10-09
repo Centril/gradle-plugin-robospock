@@ -1,6 +1,7 @@
 package com.example;
 
-import android.view.MenuItem;
+import android.app.Activity;
+import android.os.Bundle;
 
 public class MainActivity extends Activity {
 	@Override

@@ -30,6 +30,7 @@ import org.gradle.api.tasks.bundling.Zip
  * @since Oct , 02, 2014
  */
 class RoboSpockAction implements Action<RoboSpockConfiguration> {
+	public static String robospockTaskName = 'robospock'
 	public static final String ZIP_2_JAR_TASK = 'robospock_zip2jar'
 	public static final String ZIP_2_JAR_DESCRIPTION = "Zips for Robospock."
 
@@ -68,8 +69,12 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
 	def setupTestTask( RoboSpockConfiguration cfg ) {
-		task robospock( type: RoboSpockTest ) {
+		def task = cfg.project.tasks.create( name: robospockTaskName, type: RoboSpockTest ) {
 			config = cfg
+		}
+		cfg.project.test {
+			actions = []
+			dependsOn task
 		}
 	}
 
@@ -110,7 +115,6 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	def applyGroovy( RoboSpockConfiguration cfg ) {
 		def p = cfg.project
 		if ( !p.plugins.hasPlugin( 'groovy' ) ) {
-			p.apply plugin: 'idea'
 			p.apply plugin: 'groovy'
 		}
 	}
@@ -136,9 +140,11 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 */
 	def copyAndroidDependencies( RoboSpockConfiguration cfg ) {
 		def android = cfg.android
-		def projDep = android + getSubprojects( android )
+		def projDep = getSubprojects( android ) + android
 
 		def zip2jarDependsTask = "compile${cfg.buildType.capitalize()}Java"
+
+		def p = cfg.project
 
 		projDep.each { proj ->
 			def libsPath = 'build/libs'
@@ -149,16 +155,16 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 				dependsOn zip2jarDependsTask
 				description ZIP_2_JAR_DESCRIPTION
 				from "build/intermediates/classes/${cfg.buildType}"
-				destinationDir = file( libsPath )
+				destinationDir = proj.file( libsPath )
 				extension = "jar"
 			}
-			cfg.project.tasks.compileJava.dependsOn( zip2jar )
+			p.tasks.compileJava.dependsOn( zip2jar )
 
 			// Add all jars frm zip2jar + exploded-aar:s to dependencies.
-			project.dependencies {
-				compile fileTree( dir: proj.file( libsPath ), include: "*.jar" )
-				compile fileTree( dir: proj.file( aarPath ), include: ['*/*/*/*.jar'] )
-				compile fileTree( dir: proj.file( aarPath ), include: ['*/*/*/*/*.jar'] )
+			p.dependencies {
+				compile p.fileTree( dir: proj.file( libsPath ), include: "*.jar" )
+				compile p.fileTree( dir: proj.file( aarPath ), include: ['*/*/*/*.jar'] )
+				compile p.fileTree( dir: proj.file( aarPath ), include: ['*/*/*/*/*.jar'] )
 			}
 		}
 	}
@@ -192,5 +198,4 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 		projDeps.each { extractSubprojects( it, projects ) }
 		projects.addAll( projDeps )
 	}
-
 }

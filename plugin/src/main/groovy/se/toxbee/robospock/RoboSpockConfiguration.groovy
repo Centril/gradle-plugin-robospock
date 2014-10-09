@@ -219,6 +219,7 @@ class RoboSpockConfiguration {
 	 * @return true if it is.
 	 */
 	private static boolean isAndroid( Project project ) {
-		return project.plugins.hasPlugin( "android" ) || project.plugins.hasPlugin( "android-library" )
+		return ['android', 'android-library', 'com.android.application', 'com.android.library']
+			.find { project.plugins.hasPlugin( it ) }
 	}
 }

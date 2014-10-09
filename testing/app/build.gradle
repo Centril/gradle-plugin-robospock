@@ -19,7 +19,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:+'
+		classpath 'com.android.tools.build:gradle:0.13.2'
 	}
 }
 
@@ -27,7 +27,7 @@ repositories {
 	mavenCentral()
 }
 
-apply plugin: 'android'
+apply plugin: 'com.android.application'
 
 android {
     dexOptions {
@@ -40,9 +40,9 @@ android {
 		}
 	}
     lintOptions {
-        abortOnError false
+        abortOnError true
     }
 
-    compileSdkVersion 18
+    compileSdkVersion 20
     buildToolsVersion "20"
 }
