@@ -72,8 +72,10 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 		def task = cfg.project.tasks.create( name: robospockTaskName, type: RoboSpockTest ) {
 			config = cfg
 		}
+
+		// Remove all actions on test & make it basically do robospock task.
 		cfg.project.test {
-			actions = []
+			deleteAllActions()
 			dependsOn task
 		}
 	}
