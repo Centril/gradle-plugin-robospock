@@ -67,16 +67,16 @@ class RoboSpockConfiguration {
 
 	/**
 	 * (Optional) The groovy version to use.
-	 * Default: Latest known version (2.3.+).
+	 * Default: Latest known version (2.3.6).
 	 */
-	String groovyVersion    = '2.3.+'
+	String groovyVersion    = '2.3.6'
 
 	/**
 	 * (Optional) The clib version to use as dependency.
 	 * Default: Latest known version (3.1).
 	 * If the dependency is unwanted, set the string to empty.
 	 */
-	String clibVersion      = '3.1'
+	String cglibVersion = '3.1'
 
 	/**
 	 * (Optional) The objenesis version to use as dependency.
@@ -144,52 +144,6 @@ class RoboSpockConfiguration {
 		return a
 	}
 
-	/**
-	 * Adds all the dependencies of this configuration to {@link #project}.
-	 */
-	public void addDependencies() {
-		def deps = [
-				"org.codehaus.groovy:groovy-all:${this.groovyVersion}",
-				"org.spockframework:spock-core:${this.spockVersion}",
-				"org.robospock:robospock:${this.robospockVersion}"
-		]
-
-		this.clibVersion = this.clibVersion.trim()
-		if ( this.clibVersion ) {
-			deps << "cglib:cglib-nodep:${this.clibVersion}"
-		}
-
-		this.objenesisVersion = this.objenesisVersion.trim()
-		if ( this.objenesisVersion ) {
-			deps << "cglib:cglib-nodep:${this.objenesisVersion}"
-		}
-
-		deps.each { dep ->
-			this.project.dependencies {
-				testCompile dep
-			}
-		}
-	}
-
-	/**
-	 * Applies the groovy plugin to {@link #project}.
-	 */
-	public void applyGroovy() {
-		this.project.plugins.apply( 'groovy' )
-	}
-
-	/**
-	 * Adds the android SDK dir repositories to {@link #project}.
-	 */
-	public void addAndroidRepositories() {
-		def sdkDir = this.android.android.sdkDirectory
-
-		this.project.repositories {
-			maven { url "${sdkDir}/extras/android/m2repository" }
-			maven { url "${sdkDir}/extras/google/m2repository" }
-		}
-	}
-
 	//================================================================================
 	// Internal logic, setters, etc.
 	//================================================================================
@@ -197,12 +151,13 @@ class RoboSpockConfiguration {
 	/**
 	 * The suffix to remove from {@link #project}.path
 	 */
-	private static final Pattern PROJECT_SUFFIX_REMOVE = ~/[^(?!_)\w]?test$/
+	private static final Pattern PROJECT_SUFFIX_REMOVE = ~/[^a-zA-Z0-9]?test$/
 
 	/**
 	 * The {@link Project} that the configuration is being applied on.
 	 */
-	private Project project
+	def Project project
+
 	/**
 	 * Verify that the buildType exists.
 	 */
@@ -237,7 +192,7 @@ class RoboSpockConfiguration {
 			// Parent == android? Found it!
 			if ( !isAndroid( aspirant ) ) {
 				// Look in subprojects of parents.
-				def tryPath = tryPath()
+				def tryPath = tryPath( this.project.path )
 				if ( tryPath.length() < project.path.length() ) {
 					aspirant = aspirant.subprojects.find { it.path == tryPath && isAndroid( it ) }
 				}
@@ -250,10 +205,11 @@ class RoboSpockConfiguration {
 	/**
 	 * Returns a path that assumes that the PROJECT_SUFFIX_REMOVE removed is an android {@link #project}.
 	 *
+	 * @param path the path to remove suffix from.
 	 * @return the path to try for an android {@link #project}.
 	 */
-	private String tryPath() {
-		this.project.path - PROJECT_SUFFIX_REMOVE
+	private static String tryPath( String path ) {
+		path - PROJECT_SUFFIX_REMOVE
 	}
 
 	/**
@@ -262,7 +218,7 @@ class RoboSpockConfiguration {
 	 * @param project The {@link Project} to check.
 	 * @return true if it is.
 	 */
-	private boolean isAndroid( Project project ) {
+	private static boolean isAndroid( Project project ) {
 		return project.plugins.hasPlugin( "android" ) || project.plugins.hasPlugin( "android-library" )
 	}
 }

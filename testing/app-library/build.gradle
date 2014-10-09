@@ -1,0 +1,37 @@
+apply plugin: 'android-library'
+
+dependencies {
+    compile 'com.google.android.gms:play-services:5.+'
+    compile 'com.android.support:appcompat-v7:20.0.0'
+    compile 'com.android.support:support-v4:20.0.0'
+    compile 'com.twotoasters.jazzylistview:library:1.0.1'
+}
+
+android {
+	dexOptions {
+		preDexLibraries = false
+	}
+	buildTypes {
+		defaultConfig {
+			minSdkVersion 9
+			targetSdkVersion 18
+		}
+	}
+	lintOptions {
+		abortOnError false
+	}
+
+	compileSdkVersion 18
+	buildToolsVersion "20"
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            aidl.srcDirs = ['src']
+            resources.srcDirs = ['src']
+            renderscript.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+        }
+    }
+}

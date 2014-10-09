@@ -1,0 +1,26 @@
+apply plugin: 'android'
+
+dependencies {
+    compile "com.android.support:appcompat-v7:20.0.0"
+    compile project(':testing:app-library')
+    compile 'com.twotoasters.jazzylistview:library:1.0.1'
+    compile files('libs/android-query.0.26.8')
+}
+
+android {
+    dexOptions {
+        preDexLibraries = false
+    }
+	buildTypes {
+		defaultConfig {
+			minSdkVersion 9
+			targetSdkVersion 18
+		}
+	}
+    lintOptions {
+        abortOnError false
+    }
+
+    compileSdkVersion 18
+    buildToolsVersion "20"
+}

@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-task wrapper( type: Wrapper ) {
-	gradleVersion = '2.10'
-}
-
 buildscript {
 	repositories {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:+'
+		classpath project( ':plugin' )
 	}
 }
 
-allprojects {
-	apply plugin: 'idea'
+apply plugin: 'robospock'
 
-	repositories {
-		mavenCentral()
-	}
+robospock {
+	testing = ':testing:app-library'
 }

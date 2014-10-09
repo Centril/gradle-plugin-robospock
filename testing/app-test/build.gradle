@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-task wrapper( type: Wrapper ) {
-	gradleVersion = '2.10'
-}
+evaluationDependsOn( ':plugin' )
 
-buildscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath 'com.android.tools.build:gradle:+'
-	}
-}
+apply plugin: 'groovy'
 
-allprojects {
-	apply plugin: 'idea'
+def pluginSrcDir = project( ':plugin' ).sourceSets.main.groovy.srcDirs[0]
 
-	repositories {
-		mavenCentral()
+println pluginSrcDir
+
+sourceSets {
+	main {
+		groovy {
+			srcDir pluginSrcDir
+		}
 	}
 }
+
+println sourceSets.main.groovy.srcDirs
+
+apply plugin: se.toxbee.robospock.RoboSpockPlugin

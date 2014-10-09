@@ -15,76 +15,33 @@
  */
 
 package se.toxbee.robospock
-
-import org.gradle.api.Plugin
+import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.bundling.Zip
+
 /**
- * {@link RoboSpockPlugin}:
  *
- * <p>Simplifies the usage of RoboSpock using gradle.</p>
- *
- * <p>Requires that the project property "robospock"
- * be declared like so:
- *
- * <pre>{@code
- * robospock {
- * 		testing = ':myApp'
- * }
- * }</pre></p>
- *
- * <p>However, if there is an android project in the path<br/>
- * that has the same name as the test project but with<br/>
- * /[^(?!_)\w]?test$/ removed then the requirement doesn't<br/>
- * apply as the project is found automatically.<br/>
- * An example: test project is named: myapp-test,<br/>
- * while android app is named myapp</p>
- *
- * <p>A more extensive configuration:
- *
- * <pre>{@code
- * robospock {
- *		testing          = ':myApp'<br/>
- *		buildType        = 'debug'
- *		spockVersion     = '0.7-groovy-2.0'
- *	    groovyVersion    = '2.3.3'
- *		clibVersion      = '3.1'
- *		objenesisVersion = '2.1'
- * }
- * }</pre></p>
- *
- * @see RoboSpockConfiguration#testing
- * @see RoboSpockConfiguration#buildType
- * @see RoboSpockConfiguration#spockVersion
- * @see RoboSpockConfiguration#groovyVersion
- * @see RoboSpockConfiguration#clibVersion
- * @see RoboSpockConfiguration#objenesisVersion
- * @version 0.1
- * @since 2014-10-01
- * @author Mazdak Farrokhzad <twingoow@gmail.com>
+ * @author Centril < twingoow @ gmail.com >  / Mazdak Farrokhzad.
+ * @version 1.0
+ * @since Oct , 02, 2014
  */
-class RoboSpockPlugin implements Plugin<Project> {
+class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	public static final String ZIP_2_JAR_TASK = 'robospock_zip2jar'
 	public static final String ZIP_2_JAR_DESCRIPTION = "Zips for Robospock."
 
-	void apply( Project project ) {
-		project.extensions.create( "robospock", RoboSpockConfiguration, project )
+	@Override
+	void execute( RoboSpockConfiguration config ) {
+		config.verify()
+		addAndroidRepositories config
+		applyGroovy config
+		addDependencies config
 
-		project.afterEvaluate {
-			RoboSpockConfiguration cfg = project.robospock
-
-			cfg.verify()
-			cfg.addAndroidRepositories()
-			cfg.applyGroovy()
-			cfg.addDependencies()
-
-			copyAndroidDependencies cfg
-			setupTestTask cfg
-		}
+		copyAndroidDependencies config
+		setupTestTask config
 	}
-
 	/**
 	 * Sets up the test task.
 	 *
@@ -92,7 +49,59 @@ class RoboSpockPlugin implements Plugin<Project> {
 	 */
 	def setupTestTask( RoboSpockConfiguration cfg ) {
 		task robospock( type: RoboSpockTest ) {
-			config  = cfg
+			config = cfg
+		}
+	}
+
+	/**
+	 * Adds all the dependencies of this configuration to {@link Project}.
+	 *
+	 * @param cfg the {@link RoboSpockConfiguration} object.
+	 */
+	def addDependencies( RoboSpockConfiguration cfg ) {
+		def deps = [
+				"org.codehaus.groovy:groovy-all:${cfg.groovyVersion}",
+				"org.spockframework:spock-core:${cfg.spockVersion}",
+				"org.robospock:robospock:${cfg.robospockVersion}"
+		]
+
+		cfg.cglibVersion = cfg.cglibVersion.trim()
+		if ( cfg.cglibVersion ) {
+			deps << "cglib:cglib-nodep:${cfg.cglibVersion}"
+		}
+
+		cfg.objenesisVersion = cfg.objenesisVersion.trim()
+		if ( cfg.objenesisVersion ) {
+			deps << "org.objenesis:objenesis:${cfg.objenesisVersion}"
+		}
+
+		deps.each { dep ->
+			cfg.project.dependencies {
+				testCompile dep
+			}
+		}
+	}
+
+	/**
+	 * Applies the groovy plugin to project.
+	 *
+	 * @param cfg the {@link RoboSpockConfiguration} object.
+	 */
+	def applyGroovy( RoboSpockConfiguration cfg ) {
+		cfg.project.apply plugin: 'groovy'
+	}
+
+	/**
+	 * Adds the android SDK dir repositories to {@link #project}.
+	 *
+	 * @param cfg the {@link RoboSpockConfiguration} object.
+	 */
+	def addAndroidRepositories( RoboSpockConfiguration cfg ) {
+		def sdkDir = cfg.android.android.sdkDirectory
+
+		cfg.project.repositories {
+			maven { url "${sdkDir}/extras/android/m2repository" }
+			maven { url "${sdkDir}/extras/google/m2repository" }
 		}
 	}
 
@@ -112,14 +121,14 @@ class RoboSpockPlugin implements Plugin<Project> {
 			def aarPath = 'build/intermediates/exploded-aar/'
 
 			// Create zip2jar task & make compileJava depend on it.
-			def zip2jar = proj.tasks.create( name: ZIP_2_JAR_TASK, type: Zip ) {
+			Task zip2jar = proj.tasks.create( name: ZIP_2_JAR_TASK, type: Zip ) {
 				dependsOn zip2jarDependsTask
 				description ZIP_2_JAR_DESCRIPTION
 				from "build/intermediates/classes/${cfg.buildType}"
 				destinationDir = file( libsPath )
 				extension = "jar"
 			}
-			tasks.compileJava.dependsOn( zip2jar )
+			cfg.project.tasks.compileJava.dependsOn( zip2jar )
 
 			// Add all jars frm zip2jar + exploded-aar:s to dependencies.
 			project.dependencies {
@@ -133,17 +142,17 @@ class RoboSpockPlugin implements Plugin<Project> {
 	/**
 	 * Returns all sub projects to the android project.
 	 *
-	 * @param androidProject the android {@link Project}.
-	 * @return the sub{@link Project}s.
+	 * @param project the {@link org.gradle.api.Project}.
+	 * @return the sub{@link org.gradle.api.Project}s.
 	 */
-	def List<Project> getSubprojects( Project androidProject ) {
+	def List<Project> getSubprojects( Project project ) {
 		def projects = []
-		extractSubprojects( androidProject, projects )
+		extractSubprojects( project, projects )
 		return projects
 	}
 
 	/**
-	 * Recursively extracts all dependency-subprojects to the android project.
+	 * Recursively extracts all dependency-subprojects from project.
 	 *
 	 * @param libraryProject the library {@link Project} to search in.
 	 * @param projects the list of {@link Project}s to add to.
@@ -159,4 +168,5 @@ class RoboSpockPlugin implements Plugin<Project> {
 		projDeps.each { extractSubprojects( it, projects ) }
 		projects.addAll( projDeps )
 	}
+
 }
