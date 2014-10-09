@@ -1,3 +1,0 @@
-include 'plugin'
-
-include 'testing:app', 'testing:app-library', 'testing:app-test'//, 'testing:librarytest'

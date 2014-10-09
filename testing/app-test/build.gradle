@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-evaluationDependsOn( ':plugin' )
-
-apply plugin: 'groovy'
-
-def pluginSrcDir = project( ':plugin' ).sourceSets.main.groovy.srcDirs[0]
-
-println pluginSrcDir
-
-sourceSets {
-	main {
-		groovy {
-			srcDir pluginSrcDir
+buildscript {
+	repositories {
+		mavenCentral()
+		maven {
+			url file( '../../maven-deploy' )
 		}
+	}
+	dependencies {
+		classpath 'se.toxbee.robospock:gradle-plugin-robospock:0.1.0'
 	}
 }
 
-println sourceSets.main.groovy.srcDirs
-
-apply plugin: se.toxbee.robospock.RoboSpockPlugin
+apply plugin: 'robospock'

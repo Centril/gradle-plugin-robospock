@@ -15,6 +15,7 @@
  */
 
 package se.toxbee.robospock
+
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -24,7 +25,7 @@ import org.gradle.api.tasks.bundling.Zip
 
 /**
  *
- * @author Centril < twingoow @ gmail.com >  / Mazdak Farrokhzad.
+ * @author Mazdak Farrokhzad <twingoow@gmail.com>
  * @version 1.0
  * @since Oct , 02, 2014
  */
@@ -35,6 +36,7 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	@Override
 	void execute( RoboSpockConfiguration config ) {
 		config.verify()
+		addMavenCentral config
 		addAndroidRepositories config
 		applyGroovy config
 		addDependencies config
@@ -42,6 +44,24 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 		copyAndroidDependencies config
 		setupTestTask config
 	}
+
+	/**
+	 * Adds the mavenCentral() to repositories (& buildscript).
+	 *
+	 * @param cfg the {@link RoboSpockConfiguration} object.
+	 */
+	def addMavenCentral( RoboSpockConfiguration cfg ) {
+		cfg.project.buildscript {
+			repositories {
+				mavenCentral()
+			}
+		}
+
+		cfg.project.repositories {
+			mavenCentral()
+		}
+	}
+
 	/**
 	 * Sets up the test task.
 	 *
@@ -88,7 +108,11 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
 	def applyGroovy( RoboSpockConfiguration cfg ) {
-		cfg.project.apply plugin: 'groovy'
+		def p = cfg.project
+		if ( !p.plugins.hasPlugin( 'groovy' ) ) {
+			p.apply plugin: 'idea'
+			p.apply plugin: 'groovy'
+		}
 	}
 
 	/**

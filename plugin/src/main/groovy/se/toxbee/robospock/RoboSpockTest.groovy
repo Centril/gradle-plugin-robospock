@@ -19,10 +19,11 @@ package se.toxbee.robospock
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.Test
+
 /**
  * {@link RoboSpockTest} is the test task.
  *
- * @author Centril < twingoow @ gmail.com >  / Mazdak Farrokhzad.
+ * @author Mazdak Farrokhzad <twingoow@gmail.com>
  * @version 1.0
  * @since Oct , 02, 2014
  */

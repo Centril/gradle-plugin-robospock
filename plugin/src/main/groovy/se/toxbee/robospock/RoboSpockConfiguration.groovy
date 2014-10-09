@@ -194,7 +194,7 @@ class RoboSpockConfiguration {
 				// Look in subprojects of parents.
 				def tryPath = tryPath( this.project.path )
 				if ( tryPath.length() < project.path.length() ) {
-					aspirant = aspirant.subprojects.find { it.path == tryPath && isAndroid( it ) }
+					aspirant = aspirant.subprojects.find { it.path == tryPath && RoboSpockConfiguration.isAndroid( it ) }
 				}
 			}
 		}

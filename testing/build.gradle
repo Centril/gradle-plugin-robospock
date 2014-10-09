@@ -18,19 +18,6 @@ task wrapper( type: Wrapper ) {
 	gradleVersion = '2.10'
 }
 
-buildscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath 'com.android.tools.build:gradle:+'
-	}
-}
-
 allprojects {
 	apply plugin: 'idea'
-
-	repositories {
-		mavenCentral()
-	}
 }

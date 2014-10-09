@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-def g = "se.toxbee.robospock"
+def g = 'se.toxbee.robospock'
 def v = '0.1.0'
 
 ext.spock = [
@@ -26,9 +26,30 @@ ext.spock = [
 ]
 
 apply plugin: 'groovy'
+apply plugin: 'idea'
 
 group = g
 version = v
+
+/*
+ * Setup gradle:
+ */
+task wrapper( type: Wrapper ) {
+	gradleVersion = '2.10'
+}
+
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'com.android.tools.build:gradle:+'
+	}
+}
+
+repositories {
+	mavenCentral()
+}
 
 /*
  * Tasks for clearing:
@@ -42,7 +63,6 @@ task c( dependsOn: cleanAll )
 /*
  * Testing config:
  */
-apply plugin: 'groovy'
 
 dependencies {
 	compile gradleApi()

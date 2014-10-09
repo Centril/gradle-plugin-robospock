@@ -15,8 +15,10 @@
  */
 
 package se.toxbee.robospock
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+
 /**
  * {@link RoboSpockPlugin}:
  *
