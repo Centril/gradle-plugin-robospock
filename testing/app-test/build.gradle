@@ -25,5 +25,4 @@ buildscript {
 	}
 }
 
-apply plugin: 'groovy'
 apply plugin: 'robospock'

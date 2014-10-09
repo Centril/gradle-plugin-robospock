@@ -20,6 +20,7 @@ buildscript {
 	}
 	dependencies {
 		classpath 'com.android.tools.build:gradle:0.13.2'
+		classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
 	}
 }
 
@@ -27,6 +28,7 @@ repositories {
 	mavenCentral()
 }
 
+apply plugin: 'android-sdk-manager'
 apply plugin: 'com.android.application'
 
 android {

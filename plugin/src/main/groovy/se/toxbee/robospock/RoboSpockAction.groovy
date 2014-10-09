@@ -39,7 +39,6 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 		config.verify()
 		addMavenCentral config
 		addAndroidRepositories config
-		applyGroovy config
 		addDependencies config
 
 		copyAndroidDependencies config
@@ -106,18 +105,6 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 			cfg.project.dependencies {
 				testCompile dep
 			}
-		}
-	}
-
-	/**
-	 * Applies the groovy plugin to project.
-	 *
-	 * @param cfg the {@link RoboSpockConfiguration} object.
-	 */
-	def applyGroovy( RoboSpockConfiguration cfg ) {
-		def p = cfg.project
-		if ( !p.plugins.hasPlugin( 'groovy' ) ) {
-			p.apply plugin: 'groovy'
 		}
 	}
 

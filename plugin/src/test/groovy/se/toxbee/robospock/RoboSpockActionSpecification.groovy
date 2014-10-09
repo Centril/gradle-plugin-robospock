@@ -25,9 +25,9 @@ import spock.lang.Specification
 /**
  * Tests {@link RoboSpockPlugin}
  *
- * @author Centril < twingoow @ gmail.com >  / Mazdak Farrokhzad.
+ * @author Centril <twingoow @ gmail.com> / Mazdak Farrokhzad.
  * @version 1.0
- * @since Oct , 02, 2014
+ * @since Oct, 02, 2014
  */
 class RoboSpockActionSpecification extends Specification {
 	def "getSubprojects"() {
@@ -44,13 +44,6 @@ class RoboSpockActionSpecification extends Specification {
 			action.getSubprojects( android ).containsAll( [libB, libA] )
 	}
 
-	def "applyGroovy"() {
-		given:
-			action.applyGroovy( config )
-		expect:
-			test.plugins.hasPlugin( 'groovy' )
-	}
-
 	def "addDependencies"() {
 		when:
 			config.spockVersion     = '0.7-groovy-2.0'
@@ -58,7 +51,6 @@ class RoboSpockActionSpecification extends Specification {
 			config.robospockVersion = '0.5.+'
 			config.cglibVersion     = '3.1'
 			config.objenesisVersion = '2.1'
-			action.applyGroovy( config )
 			action.addDependencies( config )
 		then:
 			test.configurations
@@ -77,7 +69,6 @@ class RoboSpockActionSpecification extends Specification {
 			config.robospockVersion = '0.5.+'
 			config.cglibVersion = ''
 			config.objenesisVersion = ''
-			action.applyGroovy( config )
 			action.addDependencies( config )
 		then:
 			test.configurations
@@ -115,6 +106,7 @@ class RoboSpockActionSpecification extends Specification {
 	def setup() {
 		root = ProjectBuilder.builder().build()
 		test = testProject()
+		test.apply plugin: 'groovy'
 		config = new RoboSpockConfiguration( test )
 		action = new RoboSpockAction()
 	}

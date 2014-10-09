@@ -65,8 +65,15 @@ import org.gradle.api.Project
  */
 class RoboSpockPlugin implements Plugin<Project> {
 	void apply( Project project ) {
+		// Apply the groovy plugin.
+		if ( !project.plugins.hasPlugin( 'groovy' ) ) {
+			project.apply plugin: 'groovy'
+		}
+
+		// Create the extension.
 		def robospock = project.extensions.create( "robospock", RoboSpockConfiguration, project )
 
+		// Configure robospock.
 		project.afterEvaluate {
 			new RoboSpockAction().execute( robospock )
 		}
