@@ -1,23 +1,15 @@
 # gradle-plugin-robospock
 
 gradle-plugin-robospock is a small gradle plugin for the
-sole purpose of configuring **robospock** (**gradle** + **spock** + **roboelectric**)
+sole purpose of configuring [**robospock**](https://github.com/Polidea/RoboSpock) ([**gradle**](http://www.gradle.org/) + [**spock**](https://github.com/spockframework/spock) +  [**roboelectric**](http://robolectric.org))
 in an as-easy-as-possible fashion.
 
 Robospock will basically let you do unit/integration testing of android
 specific code using the praised spock framework which uses specification
-driven testing and BDD (Behavior-Driven Development) using groovy.
+driven testing and BDD (Behavior-Driven Development) using [**groovy**](http://groovy.codehaus.org).
 And all of this happens using Roboelectric which avoids the hassle and
 latency involved in doing testing on an actual android device or worse,
 an emulator.
-
-## Links
-<table>
-<tr><td>Robospock</td><td>https://github.com/Polidea/RoboSpock</td></tr>
-<tr><td>Roboelectric</td><td>http://robolectric.org</td></tr>
-<tr><td>Spock-framework</td><td>https://github.com/spockframework/spock</td></tr>
-<tr><td>Groovy</td><td>http://groovy.codehaus.org</td></tr>
-</table>
 
 ## Usage
 
