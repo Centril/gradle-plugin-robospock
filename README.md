@@ -1,7 +1,7 @@
 # gradle-plugin-robospock
 
-gradle-plugin-robospock (GPRS) is a small gradle plugin for the
-sole purpose of configuring robospock (gradle + spock + roboelectric)
+gradle-plugin-robospock is a small gradle plugin for the
+sole purpose of configuring **robospock** (**gradle** + **spock** + **roboelectric**)
 in an as-easy-as-possible fashion.
 
 Robospock will basically let you do unit/integration testing of android
@@ -12,23 +12,23 @@ latency involved in doing testing on an actual android device or worse,
 an emulator.
 
 ## Links
-
-Robospock:			https://github.com/Polidea/RoboSpock
-Roboelectric:	 	http://robolectric.org
-Groovy:				http://groovy.codehaus.org
-Spock-framework:	https://github.com/spockframework/spock
+<table>
+<tr><td>Robospock</td><td>https://github.com/Polidea/RoboSpock</td></tr>
+<tr><td>Roboelectric</td><td>http://robolectric.org</td></tr>
+<tr><td>Spock-framework</td><td>https://github.com/spockframework/spock</td></tr>
+<tr><td>Groovy</td><td>http://groovy.codehaus.org</td></tr>
+</table>
 
 ## Usage
 
-Using GPRS requires you to have your android application or library
-in one project, and your testing code in another project. This is a
+**Using the plugin requires you to have your android application or library
+in one project, and your testing code in another project.** This is a
 restriction that the android gradle plugin puts on us, and it is not
 possible to circumvent it today, as doing: `apply plugin: 'groovy'`
 conflicts with the android plugin.
 
-Given an android project A1 with the path **:app**, and a test project
-T1 with the path **:test**, we can configure the app-test project to
-use this plugin like so:
+Given an android project with the path **:app**, and a test project with the
+path **:test**, we can configure the app-test project to use this plugin like so:
 
 ```groovy
 buildscript {
@@ -48,7 +48,7 @@ robospock {
 ```
 
 If your test project is named **app-test**, i.e the same as the application
-or library but with the suffix `-test` (to be exact, the regex: `/[^a-zA-Z0-9]?test/`), and if the app is the parent of the test project or is a sibling of it, then you may simply ommit specifying the `robospock.testing` part alltogether as it is automatically configured.
+or library but with the suffix `-test` (to be exact, the regex: `/[^a-zA-Z0-9]?test/`), and if the app is the parent of the test project or is a sibling of it, then you may simply omit specifying the `robospock.testing` part alltogether as it is automatically configured.
 Then it becomes:
 
 ```groovy
@@ -68,7 +68,7 @@ or `robospock` task if you only want to run robospock tests.
 
 ### Advanced options
 
-All the options exist are:
+The available options are:
 
 ```groovy
 robospock {
@@ -105,9 +105,13 @@ robospock {
 }
 ```
 
-By default, GPRS adds the much used optional spock-dependencies
+By default, the plugin adds the much used optional spock-dependencies
 objenesis and cglib which are used for mocking, etc. You can
 change the version used, or disable them by setting an empty version.
+
+## Changelog
+
+See [CHANGES.md](CHANGES.md)
 
 ## Bugs / Issues / Feature requests
 
@@ -120,4 +124,4 @@ This project is in its infancy, so pull requests are more than welcome.
 ## License
 
 gradle-plugin-robospock is licensed under **Apache License 2.0**,
-see LICENSE.md for more information.
+see [LICENSE.md](LICENSE.md) for more information.
