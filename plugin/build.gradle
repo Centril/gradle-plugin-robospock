@@ -148,7 +148,7 @@ publishing {
 
 /*
  * Bintray config:
- */
+ *
 bintray {
 	// this usually comes form gradle.properties file in ~/.gradle
 	user = bintrayUser
@@ -165,3 +165,4 @@ bintray {
 		labels = ['jfrog', 'samples']
 	}
 }
+*/

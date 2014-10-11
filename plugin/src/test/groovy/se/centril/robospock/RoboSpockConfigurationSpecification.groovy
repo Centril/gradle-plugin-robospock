@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package se.toxbee.robospock
+package se.centril.robospock
 
 import com.android.SdkConstants
 import org.gradle.api.GradleException

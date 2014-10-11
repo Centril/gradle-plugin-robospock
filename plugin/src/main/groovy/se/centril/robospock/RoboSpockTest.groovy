@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package se.toxbee.robospock
+package se.centril.robospock
 
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.TaskAction
