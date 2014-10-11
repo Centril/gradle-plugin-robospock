@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-def g = 'se.toxbee.robospock'
+def g = 'se.centril.robospock'
 def v = '0.1.0'
 
 ext.spock = [
@@ -40,7 +40,7 @@ task wrapper( type: Wrapper ) {
 
 buildscript {
 	repositories {
-		mavenCentral()
+		jcenter()
 	}
 	dependencies {
 		classpath 'com.android.tools.build:gradle:+'
@@ -48,22 +48,21 @@ buildscript {
 }
 
 repositories {
-	mavenCentral()
+	jcenter()
 }
 
 /*
  * Tasks for clearing:
  */
-
-task cleanMaven( type: Delete ) { delete 'maven-deploy' }
+task cleanMaven( type: Delete ) { delete '../maven-deploy' }
 task cleanOutput( type: Delete ) { delete 'classes' }
-task cleanAll( dependsOn: [clean, cleanMaven, cleanOutput] ) {}
+task cleanGradle( type: Delete ) { delete '.gradle' }
+task cleanAll( dependsOn: [clean, cleanGradle, cleanMaven, cleanOutput, cleanIdea] ) {}
 task c( dependsOn: cleanAll )
 
 /*
  * Testing config:
  */
-
 dependencies {
 	compile gradleApi()
 	compile localGroovy()
@@ -80,21 +79,19 @@ dependencies {
 apply plugin: 'maven-publish'
 build.finalizedBy publish
 
-// javadoc.jar generation
+// sources.jar generation
 task sourceJar( type: Jar ) {
 	classifier = 'sources'
 	from sourceSets.main.allSource
 }
 
-// sources.jar generation
-task javadocJar( type: Jar, dependsOn: javadoc ) {
-	classifier = 'javadoc'
-	from javadoc.destinationDir
+// groovydoc.jar generation
+task groovydocJar( type: Jar, dependsOn: groovydoc ) {
+	classifier = 'groovydoc'
+	from groovydoc.destinationDir
 }
 
-def getMavenArtifacts = {
-	return [sourceJar, javadocJar]
-}
+ext.mavenArtifacts = [sourceJar, groovydocJar]
 
 publishing {
 	repositories {
@@ -107,7 +104,7 @@ publishing {
 		maven( MavenPublication ) {
 			from components.java
 
-			getMavenArtifacts().each { ar ->
+			mavenArtifacts.each { ar ->
 				artifact( ar ) {
 					classifier = ar.classifier
 				}
@@ -138,11 +135,6 @@ publishing {
 					}
 					developers {
 						developer {
-							id 'toxbee'
-							name 'toxbee.se'
-							email 'teamoxbee@gmail.com'
-						}
-						developer {
 							id 'Centril'
 							name 'Mazdak Farrokhzad'
 							email 'twingoow@gmail.com'
@@ -151,5 +143,25 @@ publishing {
 				}
 			}
 		}
+	}
+}
+
+/*
+ * Bintray config:
+ */
+bintray {
+	// this usually comes form gradle.properties file in ~/.gradle
+	user = bintrayUser
+	key = bintrayKey
+
+	// see publications closure
+	publications = ['maven']
+	pkg {
+		repo = 'gradle-plugin-robospock'
+		userOrg = 'toxbee'
+		name = 'gradle-example'
+		desc = 'Package created from gradle-example'
+		licenses = ['Apache-2.0']
+		labels = ['jfrog', 'samples']
 	}
 }
