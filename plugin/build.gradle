@@ -25,7 +25,6 @@ buildscript {
 	dependencies {
 		classpath 'com.github.ben-manes:gradle-versions-plugin:0.5'
 		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
-		classpath "net.saliman:gradle-cobertura-plugin:2.2.4"
 		classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.0'
 		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.6'
 
@@ -37,12 +36,12 @@ plugins {
 	id 'groovy'
 	id 'idea'
 	id 'maven-publish'
+	id 'jacoco'
 	id "com.github.kt3k.coveralls" version "2.0.1"
 	id "com.github.ben-manes.versions" version "0.5"
     id 'com.github.hierynomus.license' version '0.11.0'
     id "com.jfrog.bintray" version "0.5"
 }
-apply plugin: 'cobertura'
 
 /*
  * Config:
@@ -81,11 +80,13 @@ license {
 }
 
 /*
- * cobertura:
+ * jacoco:
  */
-cobertura {
-	coverageFormats = ['html', 'xml']
-	coverageSourceDirs = sourceSets.main.groovy.srcDirs
+jacocoTestReport {
+    reports {
+        xml.enabled = true // coveralls plugin depends on xml format report
+        html.enabled = true
+    }
 }
 
 /*
