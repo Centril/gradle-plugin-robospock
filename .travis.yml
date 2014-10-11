@@ -1,6 +1,6 @@
 language: groovy
 
-script: ./gradlew clean build cobertura
+script: cd ./plugin ./gradlew clean build cobertura
 
 jdk:
   - oraclejdk7
