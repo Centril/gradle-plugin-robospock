@@ -1,4 +1,4 @@
-# gradle-plugin-robospock
+# gradle-plugin-robospock [ ![Download](https://api.bintray.com/packages/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/images/download.svg) ](https://bintray.com/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/_latestVersion)
 
 gradle-plugin-robospock is a small gradle plugin for the
 sole purpose of configuring [**robospock**](https://github.com/Polidea/RoboSpock) ([**gradle**](http://www.gradle.org/) + [**spock**](https://github.com/spockframework/spock) +  [**roboelectric**](http://robolectric.org))
@@ -25,7 +25,7 @@ path **:test**, we can configure the app-test project to use this plugin like so
 ```groovy
 buildscript {
 	repositories {
-		mavenCentral()
+		jcenter()
 	}
 	dependencies {
   		classpath 'se.toxbee.robospock:gradle-plugin-robospock:0.1.0'
@@ -46,7 +46,7 @@ Then it becomes:
 ```groovy
 buildscript {
 	repositories {
-		mavenCentral()
+		jcenter()
 	}
 	dependencies {
   		classpath 'se.toxbee.robospock:gradle-plugin-robospock:0.1.0'
