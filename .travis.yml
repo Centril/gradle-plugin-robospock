@@ -1,6 +1,8 @@
 language: groovy
 
-script: cd ./plugin ./gradlew clean build
+script:
+- cd ./plugin
+- ./gradlew clean build
 
 jdk:
   - oraclejdk7
@@ -10,4 +12,5 @@ env:
 - TERM=dumb
 
 after_success:
-- cd ./plugin && ./gradlew jacocoTestReport coveralls
+- cd plugin
+- ./gradlew jacocoTestReport coveralls
