@@ -8,4 +8,5 @@ CHANGELOG
 
 0.1.1 - Not released
 ---------------------
-+
++ Changed to jcenter() everywhere.
++ Everything in 1 gradle project hierarchy instead of 1 for plugin & 1 for testing.
