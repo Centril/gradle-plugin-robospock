@@ -14,8 +14,41 @@
  * limitations under the License.
  */
 
+/*
+ * Buildscript dependencies:
+ */
+buildscript {
+	repositories {
+		jcenter()
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'com.github.ben-manes:gradle-versions-plugin:0.5'
+		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+		classpath "net.saliman:gradle-cobertura-plugin:2.2.4"
+		classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.0'
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.6'
+
+		classpath 'com.android.tools.build:gradle:+'
+	}
+}
+
+plugins {
+	id 'groovy'
+	id 'idea'
+	id 'maven-publish'
+	id "com.github.kt3k.coveralls" version "2.0.1"
+	id "com.github.ben-manes.versions" version "0.5"
+    id 'com.github.hierynomus.license' version '0.11.0'
+    id "com.jfrog.bintray" version "0.5"
+}
+apply plugin: 'cobertura'
+
+/*
+ * Config:
+ */
 group = 'se.centril.robospock'
-version = '0.1.0'
+version = '0.1.1'
 ext.projname = 'gradle-plugin-robospock'
 ext.projdesc = 'gradle plugin for configuring robospock (gradle + spock + roboelectric) easily.'
 ext.gitrepo = "centril/${projname}"
@@ -29,28 +62,30 @@ ext.spock = [
 		objenesisVersion: '2.1'
 ]
 
-apply plugin: 'groovy'
-apply plugin: 'idea'
-
 /*
- * Setup gradle:
+ * Wrapper:
  */
 task wrapper( type: Wrapper ) {
 	gradleVersion = '2.10'
 }
 
-buildscript {
-	repositories {
-		jcenter()
-	}
-	dependencies {
-		classpath 'com.android.tools.build:gradle:+'
-		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.6'
-	}
+/*
+ * License:
+ */
+license {
+	header = rootProject.file('config/HEADER')
+	strictCheck = true
+	ignoreFailures = false
+	useDefaultMappings = true
+	ext.year = '2014'
 }
 
-repositories {
-	jcenter()
+/*
+ * cobertura:
+ */
+cobertura {
+	coverageFormats = ['html', 'xml']
+	coverageSourceDirs = sourceSets.main.groovy.srcDirs
 }
 
 /*
@@ -63,8 +98,11 @@ task cleanAll( dependsOn: [clean, cleanGradle, cleanMaven, cleanOutput, cleanIde
 task c( dependsOn: cleanAll )
 
 /*
- * Testing config:
+ * Dependencies:
  */
+repositories {
+	jcenter()
+}
 dependencies {
 	compile gradleApi()
 	compile localGroovy()
@@ -78,7 +116,6 @@ dependencies {
 /*
  * Publishing config:
  */
-apply plugin: 'maven-publish'
 build.finalizedBy publish
 
 // sources.jar generation
@@ -149,7 +186,6 @@ publishing {
 /*
  * Bintray config:
  */
-apply plugin: 'com.jfrog.bintray'
 bintray {
 	// this usually comes form gradle.properties file in ~/.gradle
 	user = bintrayUser
@@ -171,6 +207,9 @@ bintray {
 		version {
 			name = project.version
             vcsTag = project.version
+			attributes = [
+				'gradle-plugin': "robospock:${group}:${projname}"
+			]
             gpg {
             	sign = true
             }
