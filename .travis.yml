@@ -1,0 +1,12 @@
+language: groovy
+
+script: ./gradlew clean build cobertura
+
+jdk:
+  - oraclejdk7
+  - openjdk7
+
+env:
+  - PLUGIN=plugin
+
+after_success: cd $PLUGIN && ./gradlew coveralls
