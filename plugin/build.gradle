@@ -184,8 +184,6 @@ publishing {
 	}
 }
 
-println project.getProperty("bintrayUser")
-
 /*
  * Bintray config:
  */
