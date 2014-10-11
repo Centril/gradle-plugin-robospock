@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-def g = 'se.centril.robospock'
-def v = '0.1.0'
+group = 'se.centril.robospock'
+version = '0.1.0'
+ext.projname = 'gradle-plugin-robospock'
+ext.projdesc = 'gradle plugin for configuring robospock (gradle + spock + roboelectric) easily.'
+ext.gitrepo = "centril/${projname}"
+ext.giturl = "https://github.com/${gitrepo}"
 
 ext.spock = [
 		// Testing framework versions.
@@ -27,9 +31,6 @@ ext.spock = [
 
 apply plugin: 'groovy'
 apply plugin: 'idea'
-
-group = g
-version = v
 
 /*
  * Setup gradle:
@@ -44,6 +45,7 @@ buildscript {
 	}
 	dependencies {
 		classpath 'com.android.tools.build:gradle:+'
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.6'
 	}
 }
 
@@ -104,21 +106,19 @@ publishing {
 		maven( MavenPublication ) {
 			from components.java
 
-			mavenArtifacts.each { ar ->
-				artifact( ar ) {
-					classifier = ar.classifier
+			mavenArtifacts.each { 
+				artifact( it ) {
+					classifier = it.classifier
 				}
 			}
 
-			def gitrepo = "centril/build-plugin-robospock.git"
-			def giturl = "http://github.com/${gitrepo}"
-			def gitconn = "scm:git:git@github.com:${gitrepo}"
+			def gitconn = "scm:git:git@github.com:${gitrepo}.git"
 
 			pom.withXml {
 				asNode().children().last() + {
 					resolveStrategy = Closure.DELEGATE_FIRST
-					name 'gradle-plugin-robospock'
-					description 'gradle-plugin-robospock: build plugin for robospock setup.'
+					name projname
+					description projdesc
 					url giturl
 					scm {
 						url giturl
@@ -148,21 +148,33 @@ publishing {
 
 /*
  * Bintray config:
- *
+ */
+apply plugin: 'com.jfrog.bintray'
 bintray {
 	// this usually comes form gradle.properties file in ~/.gradle
 	user = bintrayUser
-	key = bintrayKey
+	key  = bintrayKey
 
 	// see publications closure
+	publish = true
 	publications = ['maven']
 	pkg {
-		repo = 'gradle-plugin-robospock'
-		userOrg = 'toxbee'
-		name = 'gradle-example'
-		desc = 'Package created from gradle-example'
+		repo = 'maven'
+		name = "${group}:${projname}"
+		desc = projdesc
 		licenses = ['Apache-2.0']
-		labels = ['jfrog', 'samples']
+		labels = ['robospock', 'gradle', 'plugin', 'roboelectric',
+				  'spock', 'android', 'unit-testing']
+		websiteUrl = giturl
+		issueTrackerUrl = "{$giturl}/issues"
+		vcsUrl = giturl
+		version {
+			name = project.version
+            vcsTag = project.version
+            gpg {
+            	sign = true
+            }
+        }
+		publicDownloadNumbers = true
 	}
 }
-*/

@@ -28,7 +28,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-  		classpath 'se.toxbee.robospock:gradle-plugin-robospock:0.1.0'
+  		classpath 'se.centril.robospock:gradle-plugin-robospock:0.1.0'
   	}
 }
 
@@ -49,7 +49,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-  		classpath 'se.toxbee.robospock:gradle-plugin-robospock:0.1.0'
+  		classpath 'se.centril.robospock:gradle-plugin-robospock:0.1.0'
   	}
 }
 apply plugin: 'robospock'
