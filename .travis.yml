@@ -1,7 +1,6 @@
 language: groovy
 
 script:
-- cd ./plugin
 - ./gradlew clean build
 
 jdk:
@@ -11,5 +10,4 @@ env:
 - TERM=dumb
 
 after_success:
-- cd plugin
 - ./gradlew jacocoTestReport coveralls

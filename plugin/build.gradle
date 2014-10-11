@@ -17,42 +17,13 @@
 /*
  * Buildscript dependencies:
  */
-buildscript {
-	repositories {
-		jcenter()
-		mavenCentral()
-	}
-	dependencies {
-		classpath 'com.github.ben-manes:gradle-versions-plugin:0.5'
-		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
-		classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.0'
-		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.6'
-
-		classpath 'com.android.tools.build:gradle:+'
-	}
-}
-
-plugins {
-	id 'groovy'
-	id 'idea'
-	id 'maven-publish'
-	id 'jacoco'
-	id "com.github.kt3k.coveralls" version "2.0.1"
-	id "com.github.ben-manes.versions" version "0.5"
-    id 'com.github.hierynomus.license' version '0.11.0'
-    id "com.jfrog.bintray" version "0.5"
-}
+['groovy', 'maven-publish', 'jacoco', 'com.github.kt3k.coveralls', 'com.jfrog.bintray']
+	.each { apply plugin: it }
 
 /*
  * Config:
  */
-group = 'se.centril.robospock'
-version = '0.1.1'
-ext.projname = 'gradle-plugin-robospock'
-ext.projdesc = 'gradle plugin for configuring robospock (gradle + spock + roboelectric) easily.'
-ext.gitrepo = "centril/${projname}"
 ext.giturl = "https://github.com/${gitrepo}"
-
 ext.spock = [
 		// Testing framework versions.
 		spockVersion : '0.7-groovy-2.0',
@@ -60,24 +31,6 @@ ext.spock = [
 		clibVersion  : '3.1',
 		objenesisVersion: '2.1'
 ]
-
-/*
- * Wrapper:
- */
-task wrapper( type: Wrapper ) {
-	gradleVersion = '2.10'
-}
-
-/*
- * License:
- */
-license {
-	header = rootProject.file('config/HEADER')
-	strictCheck = true
-	ignoreFailures = false
-	useDefaultMappings = true
-	ext.year = '2014'
-}
 
 /*
  * jacoco:
@@ -88,22 +41,9 @@ jacocoTestReport {
         html.enabled = true
     }
 }
-
-/*
- * Tasks for clearing:
- */
-task cleanMaven( type: Delete ) { delete '../maven-deploy' }
-task cleanOutput( type: Delete ) { delete 'classes' }
-task cleanGradle( type: Delete ) { delete '.gradle' }
-task cleanAll( dependsOn: [clean, cleanGradle, cleanMaven, cleanOutput, cleanIdea] ) {}
-task c( dependsOn: cleanAll )
-
 /*
  * Dependencies:
  */
-repositories {
-	jcenter()
-}
 dependencies {
 	compile gradleApi()
 	compile localGroovy()
@@ -117,8 +57,6 @@ dependencies {
 /*
  * Publishing config:
  */
-build.finalizedBy publish
-
 // sources.jar generation
 task sourceJar( type: Jar ) {
 	classifier = 'sources'

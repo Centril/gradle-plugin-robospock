@@ -14,4 +14,7 @@
  * limitations under the License.
  */
 
-rootProject.name = 'gradle-plugin-robospock'
+include 'plugin'
+project(':plugin').name = rootProject.name = 'gradle-plugin-robospock'
+
+include ':testing:app', ':testing:app-test'

@@ -37,7 +37,7 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	@Override
 	void execute( RoboSpockConfiguration config ) {
 		config.verify()
-		addMavenCentral config
+		addJCenter config
 		addAndroidRepositories config
 		addDependencies config
 
@@ -50,15 +50,9 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 *
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
-	def addMavenCentral( RoboSpockConfiguration cfg ) {
-		cfg.project.buildscript {
-			repositories {
-				mavenCentral()
-			}
-		}
-
+	def addJCenter( RoboSpockConfiguration cfg ) {
 		cfg.project.repositories {
-			mavenCentral()
+			jcenter()
 		}
 	}
 

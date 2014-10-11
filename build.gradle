@@ -1,0 +1,68 @@
+/*
+ * Copyright 2014 Centril / Mazdak Farrokhzad <twingoow@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * Buildscript dependencies:
+ */
+buildscript {
+	repositories {
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.github.ben-manes:gradle-versions-plugin:0.5'
+		classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+		classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.0.0'
+		classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:0.6'
+
+		classpath 'com.android.tools.build:gradle:0.13.2'
+		classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
+	}
+}
+
+allprojects {
+	['idea','maven-publish', 'com.github.ben-manes.versions', 'com.github.hierynomus.license']
+		.each { apply plugin: it }
+
+	repositories {
+		jcenter()
+	}
+
+	/*
+	 * License:
+	 */
+	license {
+		header = rootProject.file('config/HEADER')
+		strictCheck = true
+		ignoreFailures = false
+		useDefaultMappings = true
+		ext.year = '2014'
+	}
+}
+
+/*
+ * Wrapper:
+ */
+task wrapper( type: Wrapper ) {
+	gradleVersion = '2.10'
+}
+
+/*
+ * Tasks for clearing:
+ */
+task cleanMaven( type: Delete ) { delete 'maven-deploy' }
+task cleanGradle( type: Delete ) { delete '.gradle' }
+task cleanAll( dependsOn: [clean, cleanGradle, cleanMaven, cleanIdea] ) {}
+task c( dependsOn: cleanAll )

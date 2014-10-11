@@ -70,6 +70,13 @@ class RoboSpockPlugin implements Plugin<Project> {
 			project.apply plugin: 'groovy'
 		}
 
+		// Add jcenter to buildscript repo.
+		project.buildscript {
+			repositories {
+				jcenter()
+			}
+		}
+
 		// Create the extension.
 		def robospock = project.extensions.create( "robospock", RoboSpockConfiguration, project )
 

@@ -14,22 +14,8 @@
  * limitations under the License.
  */
 
-buildscript {
-	repositories {
-		jcenter()
-	}
-	dependencies {
-		classpath 'com.android.tools.build:gradle:0.13.2'
-		classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
-	}
-}
-
-repositories {
-	jcenter()
-}
-
-apply plugin: 'android-sdk-manager'
-apply plugin: 'com.android.application'
+['android-sdk-manager', 'com.android.application']
+	.each { apply plugin: it }
 
 android {
 	buildTypes {
