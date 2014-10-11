@@ -6,7 +6,4 @@ jdk:
   - oraclejdk7
   - openjdk7
 
-env:
-  - PLUGIN=plugin
-
-after_success: cd $PLUGIN && ./gradlew coveralls
+after_success: cd ./plugin && ./gradlew coveralls
