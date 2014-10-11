@@ -189,8 +189,8 @@ publishing {
  */
 bintray {
 	// this usually comes form gradle.properties file in ~/.gradle
-	user = bintrayUser
-	key  = bintrayKey
+	user = bintrayUser ?: ''
+	key  = bintrayKey ?: ''
 
 	// see publications closure
 	publish = true
