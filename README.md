@@ -1,4 +1,8 @@
-# gradle-plugin-robospock [ ![Download](https://api.bintray.com/packages/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/images/download.svg) ](https://bintray.com/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/_latestVersion)
+# gradle-plugin-robospock
+
+[ ![Download](https://api.bintray.com/packages/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/images/download.svg) ](https://bintray.com/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/_latestVersion)
+[![Build Status](https://travis-ci.org/Centril/gradle-plugin-robospock.svg?branch=master)](https://travis-ci.org/Centril/gradle-plugin-robospock)
+[![Coverage Status](https://coveralls.io/repos/Centril/gradle-plugin-robospock/badge.png)](https://coveralls.io/r/Centril/gradle-plugin-robospock) 
 
 gradle-plugin-robospock is a small gradle plugin for the
 sole purpose of configuring [**robospock**](https://github.com/Polidea/RoboSpock) ([**gradle**](http://www.gradle.org/) + [**spock**](https://github.com/spockframework/spock) +  [**roboelectric**](http://robolectric.org))
