@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 toxbee.se
+ * Copyright 2014 Centril / Mazdak Farrokhzad <twingoow@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 buildscript {
 	repositories {
-		mavenCentral()
+		jcenter()
 		maven {
 			url file( '../../maven-deploy' )
 		}
 	}
 	dependencies {
-		classpath 'se.toxbee.robospock:gradle-plugin-robospock:0.1.0'
+		classpath 'se.centril.robospock:gradle-plugin-robospock:0.1.0'
 	}
 }
 
