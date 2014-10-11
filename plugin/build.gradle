@@ -184,13 +184,19 @@ publishing {
 	}
 }
 
+println project.getProperty("bintrayUser")
+
 /*
  * Bintray config:
  */
+def prop( String propertyName, defaultValue ) {
+	hasProperty( propertyName ) ? getProperty( propertyName ) : defaultValue
+}
+
 bintray {
 	// this usually comes form gradle.properties file in ~/.gradle
-	user = project.getProperty("bintrayUser") ?: ''
-	key  = project.getProperty("bintrayKey") ?: ''
+	user = prop( "bintrayUser", '' )
+	key  = prop( "bintrayKey", '' )
 
 	// see publications closure
 	publish = true
