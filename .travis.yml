@@ -6,11 +6,13 @@ jdk:
 env:
 - TERM=dumb
 
-script: ./gradlew clean build
-
 before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq libstdc++6:i386 lib32z1 expect
 - chmod +x gradlew
 
-after_success: ./gradlew jacocoTestReport coveralls
+script:
+- ./gradlew clean build
+
+after_success:
+- ./gradlew jacocoTestReport coveralls
