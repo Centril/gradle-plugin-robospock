@@ -25,7 +25,7 @@ android {
 		}
 	}
     lintOptions {
-        abortOnError true
+        abortOnError false
     }
 
     compileSdkVersion 20
