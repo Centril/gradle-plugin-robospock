@@ -15,3 +15,7 @@
  */
 
 apply plugin: 'robospock'
+
+dependency {
+	testCompile 'com.android.support:support-v4:19.0.1'
+}
