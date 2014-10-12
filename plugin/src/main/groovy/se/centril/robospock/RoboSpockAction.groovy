@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.bundling.Zip
 
+import com.jakewharton.sdkmanager.internal.PackageResolver
+
 /**
  *
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
@@ -37,12 +39,23 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	@Override
 	void execute( RoboSpockConfiguration config ) {
 		config.verify()
-		addJCenter config
-		addAndroidRepositories config
-		addDependencies config
+		def run = [this.&addJCenter, this.&addAndroidRepositories, this.&addDependencies,
+				   this.&fixSupportLib, this.&copyAndroidDependencies, this.&setupTestTask]
+		run.each { it config }
+	}
 
-		copyAndroidDependencies config
-		setupTestTask config
+	/**
+	 * Adds the mavenCentral() to repositories (& buildscript).
+	 *
+	 * @param cfg the {@link RoboSpockConfiguration} object.
+	 */
+	def fixSupportLib( RoboSpockConfiguration cfg ) {
+		// Roboelectric needs this, make com.jakewharton.sdkmanager download it.
+		cfg.project.dependencies {
+			testCompile 'com.android.support:support-v4:19.0.1'
+		}
+		cfg.project.ext.android = cfg.android.android
+		PackageResolver.resolve cfg.project, cfg.sdkDir()
 	}
 
 	/**
@@ -108,8 +121,7 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
 	def addAndroidRepositories( RoboSpockConfiguration cfg ) {
-		def sdkDir = cfg.android.android.sdkDirectory
-
+		def sdkDir = cfg.sdkDir()
 		cfg.project.repositories {
 			maven { url "${sdkDir}/extras/android/m2repository" }
 			maven { url "${sdkDir}/extras/google/m2repository" }

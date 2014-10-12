@@ -19,7 +19,11 @@ package se.centril.robospock
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
+import java.io.File
 import java.util.regex.Pattern
+
+import com.android.build.gradle.AppPlugin
+import com.android.build.gradle.LibraryPlugin
 
 /**
  * {@link RoboSpockConfiguration} determines how
@@ -144,6 +148,15 @@ class RoboSpockConfiguration {
 		return a
 	}
 
+	/**
+	 * Returns the android-sdk directory as a {@link java.io.File}.
+	 *
+	 * @return android-sdk directory.
+	 */
+	public File sdkDir() {
+		getAndroid().android.sdkDirectory
+	}
+
 	//================================================================================
 	// Internal logic, setters, etc.
 	//================================================================================
@@ -219,7 +232,6 @@ class RoboSpockConfiguration {
 	 * @return true if it is.
 	 */
 	private static boolean isAndroid( Project project ) {
-		return ['android', 'android-library', 'com.android.application', 'com.android.library']
-			.find { project.plugins.hasPlugin( it ) }
+		return project.plugins.hasPlugin( AppPlugin ) || project.plugins.hasPlugin( LibraryPlugin )
 	}
 }

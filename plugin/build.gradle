@@ -41,13 +41,12 @@ jacocoTestReport {
         html.enabled = true
     }
 }
+
 /*
  * Dependencies:
  */
+apply from: 'dependencies.gradle'
 dependencies {
-	compile gradleApi()
-	compile localGroovy()
-	compile 'com.android.tools.build:gradle:+'
 	testCompile "org.codehaus.groovy:groovy-all:${spock.groovyVersion}"
 	testCompile "org.spockframework:spock-core:${spock.spockVersion}"
 	testCompile "cglib:cglib-nodep:${spock.clibVersion}"

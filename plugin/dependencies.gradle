@@ -14,4 +14,16 @@
  * limitations under the License.
  */
 
-apply plugin: 'robospock'
+/*
+ * Dependencies:
+ */
+repositories {
+	jcenter()
+}
+
+dependencies {
+	compile gradleApi()
+	compile localGroovy()
+	compile 'com.android.tools.build:gradle:0.13.+'
+	compile 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
+}
