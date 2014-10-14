@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-include 'plugin'
-project(':plugin').name = rootProject.name = 'gradle-plugin-robospock'
+['android-sdk-manager', 'com.android.application', 'robospock']
+	.each { apply plugin: it }
 
-include ':testing:app', ':testing:app-test'
-include ':testing:appinv', ':testing:appinv:appinv-test'
+android {
+	buildTypes {
+		defaultConfig {
+			minSdkVersion 9
+			targetSdkVersion 18
+		}
+	}
+    lintOptions {
+        abortOnError false
+    }
+
+    compileSdkVersion 20
+    buildToolsVersion "20"
+}
