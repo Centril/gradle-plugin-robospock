@@ -1,6 +1,16 @@
 CHANGELOG
 =====================
 
+0.2.0 (Not released)
+---------------------
++ FEATURE: Now possible to apply robospock on android plugin.
+  if you must specify what the tester project is, you must do so in:
+	`project.ext.robospockTester`.
+  Otherwise the plugin looks for a child of android project named
+  `test` or children according to the rules for `robospock.android`.
+  Next it looks for a sibling according to `robospock.android` rules.
++ BREAKING:	property `robospock.testing` removed, now `robospock.android`.
+
 0.1.2
 ---------------------
 + Fixed Travis CI errors due to 64/32 bit conflicts.
