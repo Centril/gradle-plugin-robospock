@@ -40,7 +40,7 @@ class RoboSpockTest extends Test {
 
 	@TaskAction
 	public void executeTests() {
-		def p = config.project
+		def p = config.tester
 
 		// Make check depend on this task.
 		p.tasks.getByName( JavaBasePlugin.CHECK_TASK_NAME ).dependsOn( this )

@@ -39,6 +39,7 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	@Override
 	void execute( RoboSpockConfiguration config ) {
 		config.verify()
+
 		def run = [this.&addJCenter, this.&addAndroidRepositories, this.&addDependencies,
 				   this.&fixSupportLib, this.&copyAndroidDependencies, this.&setupTestTask]
 		run.each { it config }
@@ -51,11 +52,11 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 */
 	def fixSupportLib( RoboSpockConfiguration cfg ) {
 		// Roboelectric needs this, make com.jakewharton.sdkmanager download it.
-		cfg.project.dependencies {
+		cfg.tester.dependencies {
 			testCompile 'com.android.support:support-v4:19.0.1'
 		}
-		cfg.project.ext.android = cfg.android.android
-		PackageResolver.resolve cfg.project, cfg.sdkDir()
+		cfg.tester.ext.android = cfg.android.android
+		PackageResolver.resolve cfg.tester, cfg.sdkDir()
 	}
 
 	/**
@@ -64,7 +65,7 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
 	def addJCenter( RoboSpockConfiguration cfg ) {
-		cfg.project.repositories {
+		cfg.tester.repositories {
 			jcenter()
 		}
 	}
@@ -75,12 +76,12 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
 	def setupTestTask( RoboSpockConfiguration cfg ) {
-		def task = cfg.project.tasks.create( name: robospockTaskName, type: RoboSpockTest ) {
+		def task = cfg.tester.tasks.create( name: robospockTaskName, type: RoboSpockTest ) {
 			config = cfg
 		}
 
 		// Remove all actions on test & make it basically do robospock task.
-		cfg.project.test {
+		cfg.tester.test {
 			deleteAllActions()
 			dependsOn task
 		}
@@ -109,20 +110,20 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 		}
 
 		deps.each { dep ->
-			cfg.project.dependencies {
+			cfg.tester.dependencies {
 				testCompile dep
 			}
 		}
 	}
 
 	/**
-	 * Adds the android SDK dir repositories to {@link #project}.
+	 * Adds the android SDK dir repositories to {@link RoboSpockConfiguration#android}.
 	 *
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
 	def addAndroidRepositories( RoboSpockConfiguration cfg ) {
 		def sdkDir = cfg.sdkDir()
-		cfg.project.repositories {
+		cfg.tester.repositories {
 			maven { url "${sdkDir}/extras/android/m2repository" }
 			maven { url "${sdkDir}/extras/google/m2repository" }
 		}
@@ -139,7 +140,7 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 
 		def zip2jarDependsTask = "compile${cfg.buildType.capitalize()}Java"
 
-		def p = cfg.project
+		def p = cfg.tester
 
 		projDep.each { proj ->
 			def libsPath = 'build/libs'

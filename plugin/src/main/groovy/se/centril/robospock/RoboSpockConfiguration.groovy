@@ -19,7 +19,6 @@ package se.centril.robospock
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
-import java.io.File
 import java.util.regex.Pattern
 
 import com.android.build.gradle.AppPlugin
@@ -39,16 +38,16 @@ class RoboSpockConfiguration {
 	//================================================================================
 
 	/**
-	 * (Required) The path of the android {@link Project} under test.
-	 * Either this has to be set, or {@link #android}
-	 */
-	String testing
-
-	/**
-	 * (Required) The the android {@link Project} under test.
-	 * Either this has to be set, or {@link #testing}
+	 * (Required) The android {@link Project} under test.
+	 * One of {@link #tester} or {@link #android} must be set.
 	 */
 	Project android
+
+	/**
+	 * (Required) The tester {@link Project} that the configuration is being applied on.
+	 * One of {@link #tester} or {@link #android} must be set.
+	 */
+	Project tester
 
 	/**
 	 * (Optional) The buildType being tested.
@@ -93,8 +92,41 @@ class RoboSpockConfiguration {
 	// Public non-DSL API:
 	//================================================================================
 
-	public RoboSpockConfiguration( Project proj ) {
-		project = proj
+	/**
+	 * Constructs the configuration.
+	 *
+	 * @param proj the project to begin configuration with.
+	 * @param inverse if true, proj honors {@link #isAndroid(Project)},
+	 *  otherwise it's assumed to be the tester.
+	 */
+	public RoboSpockConfiguration( Project proj, boolean inverse = false ) {
+		if ( inverse ) {
+			setAndroid( proj )
+		} else {
+			setTester( proj )
+		}
+	}
+
+	/**
+	 * Sets the path of the tester {@link Project} testing the android project.
+	 *
+	 * @param t the path of the tester {@link Project}.
+	 */
+	public void setTester( String t ) {
+		this.setTester( android.project( t ) )
+	}
+
+	/**
+	 * Sets the tester {@link Project}.
+	 *
+	 * @param t the tester {@link Project} to set.
+	 * @throws GradleException if it's an android project.
+	 */
+	public void setTester( Project t ) {
+		if ( isAndroid( t ) ) {
+			throw new GradleException( "${t} must not be an android project." )
+		}
+		this.tester = t
 	}
 
 	/**
@@ -102,8 +134,8 @@ class RoboSpockConfiguration {
 	 *
 	 * @param t the path of the android {@link Project}.
 	 */
-	public void setTesting( String t ) {
-		this.setAndroid( project.project( t ) )
+	public void setAndroid( String t ) {
+		this.setAndroid( tester.project( t ) )
 	}
 
 	/**
@@ -114,9 +146,9 @@ class RoboSpockConfiguration {
 	 */
 	public void setAndroid( Project a ) {
 		if ( !isAndroid( a ) ) {
-			throw new GradleException( a.toString() + " is not an android project" )
+			throw new GradleException( "${a} is not an android project" )
 		}
-		android( a )
+		this.android = a
 	}
 
 	/**
@@ -126,15 +158,27 @@ class RoboSpockConfiguration {
 	 * @throws GradleException if an android project could not be resolved.
 	 */
 	public Project getAndroid() {
-		if ( !this.android ) {
-			// Make an attempt to guess the android project.
-			if ( !android( findAndroidProject() ) ) {
-				throw new GradleException( "RoboSpock: could not guess project and no project found in robospock.testing, please set it!" )
-			}
-
+		// Make an attempt to guess the android project.
+		if ( !this.android && !(this.android = findAndroidProject()) ) {
+			throw new GradleException( "RoboSpock: could not guess project and no project found in robospock.android, please set it!" )
 		}
 
 		return this.android
+	}
+
+	/**
+	 * Returns the tester {@link Project} to test.
+	 *
+	 * @return the tester {@link Project}.
+	 * @throws GradleException if a tester project could not be resolved.
+	 */
+	public Project getTester() {
+		// Make an attempt to guess the tester project.
+		if ( !this.tester && !(this.tester = findTesterProject()) ) {
+			throw new GradleException( "RoboSpock: could not guess project and no project found in robospock.tester, please set it!" )
+		}
+
+		return this.tester
 	}
 
 	/**
@@ -142,10 +186,11 @@ class RoboSpockConfiguration {
 	 *
 	 * @return the android {@link Project}.
 	 */
-	public Project verify() {
-		def a = this.getAndroid()
+	public void verify() {
+		this.getAndroid()
 		this.verifyBuildType()
-		return a
+
+		this.getTester()
 	}
 
 	/**
@@ -162,14 +207,9 @@ class RoboSpockConfiguration {
 	//================================================================================
 
 	/**
-	 * The suffix to remove from {@link #project}.path
+	 * The suffix to remove from {@link #tester}.path
 	 */
 	private static final Pattern PROJECT_SUFFIX_REMOVE = ~/[^a-zA-Z0-9]?test$/
-
-	/**
-	 * The {@link Project} that the configuration is being applied on.
-	 */
-	def Project project
 
 	/**
 	 * Verify that the buildType exists.
@@ -182,32 +222,46 @@ class RoboSpockConfiguration {
 	}
 
 	/**
-	 * Internal: sets the android DSL property without checks.
+	 * Finds an android project that is either the parent of {@link #tester}
+	 * or has a similar path/name as {@link #tester}
 	 *
-	 * @param a the android {@link Project}
-	 * @return the android {@link Project}
+	 * @return an android project, or null if none found.
 	 */
-	private Project android( Project a ) {
-		this.android = a
-		this.testing = a.path
-		return a
+	private Project findTesterProject() {
+		def notAndroid = { !RoboSpockConfiguration.isAndroid( it ) }
+
+		// First look in children.
+		Project aspirant = this.android.childProjects.values().find {
+			def tryPath = RoboSpockConfiguration.tryPath( it.name ) - this.android.name
+			tryPath.isEmpty() && notAndroid( it )
+		}
+
+		// Second, look in siblings.
+		def parent = this.android.parent
+		if ( !aspirant && parent ) {
+			aspirant = parent.childProjects.values().find {
+				this.android.path == RoboSpockConfiguration.tryPath( it.path ) && notAndroid( it )
+			}
+		}
+
+		return aspirant
 	}
 
 	/**
-	 * Finds an android project that is either the parent of {@link #project}
-	 * or has a similar path/name as {@link #project}
+	 * Finds an android project that is either the parent of {@link #tester}
+	 * or has a similar path/name as {@link #tester}
 	 *
 	 * @return an android project, or null if none found.
 	 */
 	private Project findAndroidProject() {
-		def aspirant = project.getParent()
-		if ( aspirant != null ) {
-			// Parent == android? Found it!
-			if ( !isAndroid( aspirant ) ) {
-				// Look in subprojects of parents.
-				def tryPath = tryPath( this.project.path )
-				if ( tryPath.length() < project.path.length() ) {
-					aspirant = aspirant.subprojects.find { it.path == tryPath && RoboSpockConfiguration.isAndroid( it ) }
+		// Parent == android? Found it!
+		Project aspirant = this.tester.parent
+		if ( aspirant != null && !isAndroid( aspirant ) ) {
+			// Look in siblings.
+			def tryPath = RoboSpockConfiguration.tryPath( this.tester.path )
+			if ( tryPath.length() < this.tester.path.length() ) {
+				aspirant = aspirant.childProjects.values().find {
+					it.path == tryPath && RoboSpockConfiguration.isAndroid( it )
 				}
 			}
 		}
@@ -216,10 +270,10 @@ class RoboSpockConfiguration {
 	}
 
 	/**
-	 * Returns a path that assumes that the PROJECT_SUFFIX_REMOVE removed is an android {@link #project}.
+	 * Returns a path that assumes that the PROJECT_SUFFIX_REMOVE removed is an android {@link #tester}.
 	 *
 	 * @param path the path to remove suffix from.
-	 * @return the path to try for an android {@link #project}.
+	 * @return the path to try for an android {@link #tester}.
 	 */
 	private static String tryPath( String path ) {
 		path - PROJECT_SUFFIX_REMOVE

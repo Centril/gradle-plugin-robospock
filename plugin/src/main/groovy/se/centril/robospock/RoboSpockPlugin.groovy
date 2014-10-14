@@ -29,7 +29,7 @@ import org.gradle.api.Project
  *
  * <pre>{@code
  * robospock {
- * 		testing = ':myApp'
+ * 		android = ':myApp'
  * }
  * }</pre></p>
  *
@@ -44,7 +44,7 @@ import org.gradle.api.Project
  *
  * <pre>{@code
  * robospock {
- *		testing          = ':myApp'<br/>
+ *		android          = ':myApp'<br/>
  *		buildType        = 'debug'
  *		spockVersion     = '0.7-groovy-2.0'
  *	    groovyVersion    = '2.3.6'
@@ -65,10 +65,7 @@ import org.gradle.api.Project
  */
 class RoboSpockPlugin implements Plugin<Project> {
 	void apply( Project project ) {
-		// Apply the groovy plugin.
-		if ( !project.plugins.hasPlugin( 'groovy' ) ) {
-			project.apply plugin: 'groovy'
-		}
+		boolean inverse = RoboSpockConfiguration.isAndroid( project )
 
 		// Add jcenter to buildscript repo.
 		project.buildscript {
@@ -78,7 +75,15 @@ class RoboSpockPlugin implements Plugin<Project> {
 		}
 
 		// Create the extension.
-		def robospock = project.extensions.create( "robospock", RoboSpockConfiguration, project )
+		def robospock = project.extensions.create( "robospock", RoboSpockConfiguration, project, inverse )
+
+		// Temporarily fix the issue with not being able to set the tester in inverse mode.
+		if ( project.hasProperty( 'robospockTester' ) ) {
+			robospock.tester = project.getProperty( 'robospockTester' )
+		}
+
+		// Apply the groovy plugin.
+		(inverse ? robospock.tester : project).apply plugin: 'groovy'
 
 		// Configure robospock.
 		project.afterEvaluate {
