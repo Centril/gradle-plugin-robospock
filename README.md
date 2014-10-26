@@ -1,8 +1,22 @@
 # gradle-plugin-robospock
 
-[ ![Download](https://api.bintray.com/packages/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/images/download.svg) ](https://bintray.com/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/_latestVersion)
+[![Download](https://api.bintray.com/packages/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/images/download.svg) ](https://bintray.com/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/_latestVersion)
 [![Build Status](https://travis-ci.org/Centril/gradle-plugin-robospock.svg?branch=master)](https://travis-ci.org/Centril/gradle-plugin-robospock)
-[![Coverage Status](https://coveralls.io/repos/Centril/gradle-plugin-robospock/badge.png)](https://coveralls.io/r/Centril/gradle-plugin-robospock) 
+[![Coverage Status](https://coveralls.io/repos/Centril/gradle-plugin-robospock/badge.png)](https://coveralls.io/r/Centril/gradle-plugin-robospock)
+
+<!-- MarkdownTOC -->
+
+- [Usage](#usage)
+	- [Applying from a tester project:](#applying-from-a-tester-project)
+	- [Applying from an android project: (Since 0.2.0)](#applying-from-an-android-project-since-020)
+	- [Advanced options](#advanced-options)
+- [Changelog](#changelog)
+- [Bugs / Issues / Feature requests](#bugs--issues--feature-requests)
+- [Contribution](#contribution)
+- [License](#license)
+
+<!-- /MarkdownTOC -->
+
 
 gradle-plugin-robospock is a small gradle plugin for the
 sole purpose of configuring [**robospock**](https://github.com/Polidea/RoboSpock) ([**gradle**](http://www.gradle.org/) + [**spock**](https://github.com/spockframework/spock) +  [**roboelectric**](http://robolectric.org))
@@ -23,6 +37,8 @@ restriction that the android gradle plugin puts on us, and it is not
 possible to circumvent it today, as doing: `apply plugin: 'groovy'`
 conflicts with the android plugin.
 
+### Applying from a tester project:
+
 Given an android project with the path **:app**, and a test project with the
 path **:test**, we can configure the app-test project to use this plugin like so:
 
@@ -32,19 +48,19 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-  		classpath 'se.centril.robospock:gradle-plugin-robospock:0.1.1'
+  		classpath 'se.centril.robospock:gradle-plugin-robospock:0.2.0'
   	}
 }
 
 apply plugin: 'robospock'
 
 robospock {
-	testing = ':app'
+	android = ':app'
 }
 ```
 
 If your test project is named **app-test**, i.e the same as the application
-or library but with the suffix `-test` (to be exact, the regex: `/[^a-zA-Z0-9]?test/`), and if the app is the parent of the test project or is a sibling of it, then you may simply omit specifying the `robospock.testing` part alltogether as it is automatically configured.
+or library but with the suffix `-test` (to be exact, the regex: `/[^a-zA-Z0-9]?test/`), and if the app is the parent of the test project or is a sibling of it, then you may simply omit specifying the `robospock.android` part alltogether as it is automatically configured.
 Then it becomes:
 
 ```groovy
@@ -53,7 +69,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-  		classpath 'se.centril.robospock:gradle-plugin-robospock:0.1.1'
+  		classpath 'se.centril.robospock:gradle-plugin-robospock:0.2.0'
   	}
 }
 apply plugin: 'robospock'
@@ -62,16 +78,33 @@ apply plugin: 'robospock'
 When you have done this, you can use the `test` task as usual,
 or `robospock` task if you only want to run robospock tests.
 
+### Applying from an android project: (Since 0.2.0)
+
+
+It is also possible to apply the plugin from an android project.
+
+Due to restrictions in gradle, if you want to specify what the
+tester project is, you must do so in a project property before
+the plugin is applied like so:
+`project.ext.robospockTester = ':<path_to_tester_project>'`
+
+Other than that, the procedure is the exact same as before.
+If you have a project named `test` as a child or `app-test`
+as a child or a sibling of the android project, it will be
+automatically found and used. This can rid you of the need
+for a `build.gradle` file for the tester project altogether.
+
 ### Advanced options
 
 The available options are:
 
 ```groovy
 robospock {
-	// Sets the android project to test
-	android = <gradle_project_object>
-	// The same as doing: android = project( '<gradle_android_project_path>' )
-	testing = '<gradle_android_project_path>'
+	// Sets the android project to test, from a tester project.
+	android = <gradle_android_project_object>, or '<gradle_android_project_path>'
+
+	// Sets the tester project to test with, from an android project.
+	tester = <gradle_tester_project_object>, or '<gradle_tester_project_path>'
 
 	// One of the build-types specified in android_project_build_type,
 	// default: 'debug'
@@ -102,7 +135,7 @@ robospock {
 ```
 
 By default, the plugin adds the much used optional spock-dependencies
-objenesis and cglib which are used for mocking, etc. You can
+`objenesis` and `cglib` which are used for mocking, etc. You can
 change the version used, or disable them by setting an empty version.
 
 ## Changelog
