@@ -53,7 +53,8 @@ import org.gradle.api.Project
  * }
  * }</pre></p>
  *
- * @see RoboSpockConfiguration#testing
+ * @see RoboSpockConfiguration#android
+ * @see RoboSpockConfiguration#tester
  * @see RoboSpockConfiguration#buildType
  * @see RoboSpockConfiguration#spockVersion
  * @see RoboSpockConfiguration#groovyVersion
