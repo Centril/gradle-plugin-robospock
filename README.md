@@ -1,8 +1,6 @@
-# gradle-plugin-robospock
+[![badge: Download]][badge url: Download] [![badge: Build Status]][badge url: Build Status] [![badge: Coverage Status]][badge url: Coverage Status] [![badge: LICENSE]][LICENSE.md] [![badge: Semver 2.0.0]][badge url: Semver 2.0.0]
 
-[![Download](https://api.bintray.com/packages/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/images/download.svg) ](https://bintray.com/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/_latestVersion)
-[![Build Status](https://travis-ci.org/Centril/gradle-plugin-robospock.svg?branch=master)](https://travis-ci.org/Centril/gradle-plugin-robospock)
-[![Coverage Status](https://coveralls.io/repos/Centril/gradle-plugin-robospock/badge.png)](https://coveralls.io/r/Centril/gradle-plugin-robospock)
+# [gradle-plugin-robospock]
 
 <!-- MarkdownTOC -->
 
@@ -17,25 +15,16 @@
 
 <!-- /MarkdownTOC -->
 
+[gradle-plugin-robospock] is a small gradle plugin for the sole purpose of setting up **[robospock]** (**[gradle]** + **[spock]** +  **[roboelectric]**) as easily as possible.
 
-gradle-plugin-robospock is a small gradle plugin for the
-sole purpose of configuring [**robospock**](https://github.com/Polidea/RoboSpock) ([**gradle**](http://www.gradle.org/) + [**spock**](https://github.com/spockframework/spock) +  [**roboelectric**](http://robolectric.org))
-in an as-easy-as-possible fashion.
+Robospock will basically let you do unit/integration testing of android specific code using the praised spock framework which uses specification driven testing and BDD (Behavior-Driven Development) using **[groovy]**.
 
-Robospock will basically let you do unit/integration testing of android
-specific code using the praised spock framework which uses specification
-driven testing and BDD (Behavior-Driven Development) using [**groovy**](http://groovy.codehaus.org).
-And all of this happens using Roboelectric which avoids the hassle and
-latency involved in doing testing on an actual android device or worse,
-an emulator.
+And all of this happens using Roboelectric which avoids the hassle and latency involved in doing testing on an actual android device or worse, an emulator.
 
 ## Usage
 
 **Using the plugin requires you to have your android application or library
-in one project, and your testing code in another project.** This is a
-restriction that the android gradle plugin puts on us, and it is not
-possible to circumvent it today, as doing: `apply plugin: 'groovy'`
-conflicts with the android plugin.
+in one project, and your testing code in another project.** This is a restriction that the android gradle plugin puts on us, and it is not possible to circumvent it today, as doing: `apply plugin: 'groovy'` conflicts with the android plugin.
 
 ### Applying from a tester project:
 
@@ -83,16 +72,12 @@ or `robospock` task if you only want to run robospock tests.
 
 It is also possible to apply the plugin from an android project.
 
-Due to restrictions in gradle, if you want to specify what the
-tester project is, you must do so in a project property before
-the plugin is applied like so:
-`project.ext.robospockTester = ':<path_to_tester_project>'`
+Due to restrictions in gradle, if you want to specify what the tester project is, you must do so in a project property before the plugin is applied like so:
+```groovy
+project.ext.robospockTester = ':<path_to_tester_project>'
+```
 
-Other than that, the procedure is the exact same as before.
-If you have a project named `test` as a child or `app-test`
-as a child or a sibling of the android project, it will be
-automatically found and used. This can rid you of the need
-for a `build.gradle` file for the tester project altogether.
+Other than that, the procedure is the exact same as before. If you have a project named `test` as a child or `app-test` as a child or a sibling of the android project, it will be automatically found and used. This can rid you of the need for a `build.gradle` file for the tester project altogether.
 
 ### Advanced options
 
@@ -134,13 +119,11 @@ robospock {
 }
 ```
 
-By default, the plugin adds the much used optional spock-dependencies
-`objenesis` and `cglib` which are used for mocking, etc. You can
-change the version used, or disable them by setting an empty version.
+By default, the plugin adds the much used optional spock-dependencies `objenesis` and `cglib` which are used for mocking, etc. You can change the version used, or disable them by setting an empty version.
 
 ## Changelog
 
-See [CHANGES.md](CHANGES.md)
+See [CHANGES.md]
 
 ## Bugs / Issues / Feature requests
 
@@ -152,5 +135,30 @@ This project is in its infancy, so pull requests are more than welcome.
 
 ## License
 
-gradle-plugin-robospock is licensed under **Apache License 2.0**,
-see [LICENSE.md](LICENSE.md) for more information.
+[gradle-plugin-robospock] is licensed under **Apache License 2.0**, see [LICENSE.md] for more information.
+
+<!-- references -->
+
+[gradle-plugin-robospock]: https://github.com/Centril/gradle-plugin-robospock
+
+[badge: Download]: https://api.bintray.com/packages/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/images/download.svg
+[badge url: Download]: https://bintray.com/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/_latestVersion
+[badge: Build Status]: https://travis-ci.org/Centril/gradle-plugin-robospock.svg?branch=master
+[badge url: Build Status]: https://travis-ci.org/Centril/gradle-plugin-robospock
+[badge: Coverage Status]: https://coveralls.io/repos/Centril/gradle-plugin-robospock/badge.png
+[badge url: Coverage Status]: https://coveralls.io/r/Centril/gradle-plugin-robospock
+[badge: License]: http://img.shields.io/badge/license-ASL_2.0-blue.svg
+[LICENSE.md]: LICENSE.md
+[badge: Semver 2.0.0]: http://img.shields.io/badge/semver-2.0.0-blue.svg
+[badge url: Semver 2.0.0]: http://semver.org/spec/v2.0.0.html
+
+[robospock]: https://github.com/Polidea/RoboSpock
+[gradle]: http://www.gradle.org/
+[spock]: https://github.com/spockframework/spock
+[roboelectric]: http://robolectric.org
+[groovy]: http://groovy.codehaus.org
+
+[CHANGES.md]: CHANGES.md
+
+<!-- references -->
+
