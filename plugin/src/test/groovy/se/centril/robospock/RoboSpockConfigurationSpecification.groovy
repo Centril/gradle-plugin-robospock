@@ -57,12 +57,12 @@ class RoboSpockConfigurationSpecification extends Specification {
 		given:
 			def a1 = androidProject()
 			def t1 = testProject( 'app-test', a1 )
-			def c1 = new RoboSpockConfiguration( t1, false )
+			def c1 = new RoboSpockConfiguration( t1 )
 			def a2 = androidProject()
 			def t2 = testProject( 'app-test' )
-			def c2 = new RoboSpockConfiguration( t2, false )
+			def c2 = new RoboSpockConfiguration( t2 )
 			def t3 = testProject( '', null )
-			def c3 = new RoboSpockConfiguration( t3, false )
+			def c3 = new RoboSpockConfiguration( t3 )
 		expect:
 			c1.findAndroidProject() == a1
 			c2.findAndroidProject() == a2
@@ -73,15 +73,15 @@ class RoboSpockConfigurationSpecification extends Specification {
 		given:
 			def a1 = androidProject( 'app1')
 			def t1 = testProject( 'app1-test', a1 )
-			def c1 = new RoboSpockConfiguration( a1, true )
+			def c1 = new RoboSpockConfiguration( a1 )
 			def a2 = androidProject( 'app2' )
 			def t2 = testProject( 'test', a2 )
-			def c2 = new RoboSpockConfiguration( a2, true )
+			def c2 = new RoboSpockConfiguration( a2 )
 			def a3 = androidProject( 'app3' )
 			def t3 = testProject( 'app3-test' )
-			def c3 = new RoboSpockConfiguration( a3, true )
+			def c3 = new RoboSpockConfiguration( a3 )
 			def a4 = androidProject( 'app4' )
-			def c4 = new RoboSpockConfiguration( a4, true )
+			def c4 = new RoboSpockConfiguration( a4 )
 		expect:
 			c1.findTesterProject() == t1
 			c2.findTesterProject() == t2
@@ -92,8 +92,8 @@ class RoboSpockConfigurationSpecification extends Specification {
 	def "verifyBuildType"() {
 		given:
 			def t = testProject()
-			def c1 = new RoboSpockConfiguration( t, false )
-			def c2 = new RoboSpockConfiguration( t, false )
+			def c1 = new RoboSpockConfiguration( t )
+			def c2 = new RoboSpockConfiguration( t )
 			c2.buildType = 'lolcats'
 			c1.android = androidProject()
 			c2.android = c1.android
@@ -110,7 +110,7 @@ class RoboSpockConfigurationSpecification extends Specification {
 	def "setTester(Project)"() {
 		given:
 			def t = testProject()
-			def c = new RoboSpockConfiguration( t, false )
+			def c = new RoboSpockConfiguration( t )
 			def a = androidProject()
 		when:
 			c.setTester( a )
@@ -127,7 +127,7 @@ class RoboSpockConfigurationSpecification extends Specification {
 		given:
 			def t = testProject()
 			def a = androidProject()
-			def c = new RoboSpockConfiguration( a, true )
+			def c = new RoboSpockConfiguration( a )
 		when:
 			c.setTester( a.path )
 		then:
@@ -142,7 +142,7 @@ class RoboSpockConfigurationSpecification extends Specification {
 	def "setAndroid(Project)"() {
 		given:
 			def t = testProject()
-			def c = new RoboSpockConfiguration( t, false )
+			def c = new RoboSpockConfiguration( t )
 			def a = androidProject()
 		when:
 			c.setAndroid( t )
@@ -158,7 +158,7 @@ class RoboSpockConfigurationSpecification extends Specification {
 	def "setAndroid(String)"() {
 		given:
 			def t = testProject()
-			def c = new RoboSpockConfiguration( t, false )
+			def c = new RoboSpockConfiguration( t )
 			def a = androidProject()
 		when:
 			c.setAndroid( t.path )

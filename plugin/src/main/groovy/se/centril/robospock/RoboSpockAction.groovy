@@ -26,6 +26,8 @@ import org.gradle.api.tasks.bundling.Zip
 import com.jakewharton.sdkmanager.internal.PackageResolver
 
 /**
+ * {@link RoboSpockAction}: Is the heart of the plugin,
+ * this is where all the action happens.
  *
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
  * @version 1.0
@@ -36,17 +38,38 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	public static final String ZIP_2_JAR_TASK = 'robospock_zip2jar'
 	public static final String ZIP_2_JAR_DESCRIPTION = "Zips for Robospock."
 
+	static void perform( RoboSpockConfiguration cfg ) {
+		// Add jcenter to buildscript repo.
+		addJCenterBuildScript( cfg )
+
+		def p = cfg.perspective
+
+		// Temporarily fix the issue with not being able to set the tester in inverse mode.
+		// Due to be removed in Gradle 2.2.
+		if ( p.hasProperty( 'robospockTester' ) ) {
+			cfg.tester = cfg.project.getProperty( 'robospockTester' )
+		}
+
+		// Apply the groovy plugin.
+		cfg.tester.apply plugin: 'groovy'
+
+		// Configure robospock.
+		p.afterEvaluate {
+			new RoboSpockAction().execute( cfg )
+		}
+	}
+
 	@Override
-	void execute( RoboSpockConfiguration config ) {
-		config.verify()
+	void execute( RoboSpockConfiguration cfg ) {
+		cfg.verify()
 
 		def run = [this.&addJCenter, this.&addAndroidRepositories, this.&addDependencies,
 				   this.&fixSupportLib, this.&copyAndroidDependencies, this.&setupTestTask]
-		run.each { it config }
+		run.each { it cfg }
 	}
 
 	/**
-	 * Adds the mavenCentral() to repositories (& buildscript).
+	 * Makes sure that android-sdk-manager pulls support libs.
 	 *
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
@@ -60,13 +83,26 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	}
 
 	/**
-	 * Adds the mavenCentral() to repositories (& buildscript).
+	 * Adds the jcenter() to repositories.
 	 *
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
 	def addJCenter( RoboSpockConfiguration cfg ) {
 		cfg.tester.repositories {
 			jcenter()
+		}
+	}
+
+	/**
+	 * Adds the jcenter() to buildscript repositories.
+	 *
+	 * @param cfg the {@link RoboSpockConfiguration} object.
+	 */
+	def static addJCenterBuildScript( RoboSpockConfiguration cfg ) {
+		cfg.perspective.buildscript {
+			repositories {
+				jcenter()
+			}
 		}
 	}
 

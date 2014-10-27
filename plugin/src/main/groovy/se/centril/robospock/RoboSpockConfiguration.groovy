@@ -16,13 +16,18 @@
 
 package se.centril.robospock
 
+import com.android.build.gradle.AppPlugin
+import com.android.build.gradle.LibraryPlugin
+import com.android.build.gradle.api.AndroidSourceSet
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.testfixtures.ProjectBuilder
 
 import java.util.regex.Pattern
 
-import com.android.build.gradle.AppPlugin
-import com.android.build.gradle.LibraryPlugin
+import static se.centril.robospock.RoboSpockConfiguration.isAndroid
+import static se.centril.robospock.RoboSpockConfiguration.tryPath
 
 /**
  * {@link RoboSpockConfiguration} determines how
@@ -93,14 +98,24 @@ class RoboSpockConfiguration {
 	//================================================================================
 
 	/**
+	 * The perspective (of a project) from which things are applied.
+	 */
+	Project perspective
+	protected void setPerspective( Project p ) {
+		this.perspective = p
+	}
+
+	/**
 	 * Constructs the configuration.
 	 *
 	 * @param proj the project to begin configuration with.
 	 * @param inverse if true, proj honors {@link #isAndroid(Project)},
 	 *  otherwise it's assumed to be the tester.
 	 */
-	public RoboSpockConfiguration( Project proj, boolean inverse = false ) {
-		if ( inverse ) {
+	public RoboSpockConfiguration( Project proj ) {
+		this.perspective = proj
+
+		if ( isAndroid( proj ) ) {
 			setAndroid( proj )
 		} else {
 			setTester( proj )
@@ -228,23 +243,88 @@ class RoboSpockConfiguration {
 	 * @return an android project, or null if none found.
 	 */
 	private Project findTesterProject() {
-		def notAndroid = { !RoboSpockConfiguration.isAndroid( it ) }
+		def notAndroid = { !isAndroid( it ) }
 
 		// First look in children.
 		Project aspirant = this.android.childProjects.values().find {
-			def tryPath = RoboSpockConfiguration.tryPath( it.name ) - this.android.name
+			def tryPath = tryPath( it.name ) - this.android.name
 			tryPath.isEmpty() && notAndroid( it )
 		}
 
-		// Second, look in siblings.
 		def parent = this.android.parent
-		if ( !aspirant && parent ) {
-			aspirant = parent.childProjects.values().find {
-				this.android.path == RoboSpockConfiguration.tryPath( it.path ) && notAndroid( it )
+		if ( !aspirant ) {
+			// Second, look in siblings.
+			if ( parent ) {
+				aspirant = parent.childProjects.values().find {
+					this.android.path == tryPath( it.path ) && notAndroid( it )
+				}
+			}
+
+			// Third, pray that the user has {android}/src/test/* directory.
+			if ( !aspirant ) {
+				aspirant = createTesterProject()
 			}
 		}
 
 		return aspirant
+	}
+
+	/**
+	 * Creates a new tester project dynamically
+	 * and configures to behave correctly.
+	 *
+	 * The directory used for source files is mostly:
+	 *  {android}/src/test/ or {android}/src/unit-test
+	 * if the first one was occupied by androidTest.
+	 *
+	 * @return the created tester project.
+	 */
+	private Project createTesterProject() {
+		def ssc = this.android.android.sourceSets
+		File srcDir = sourceDir( ssc.main ).parentFile
+		File testDir = new File( srcDir, 'test' )
+		File androidTestDir = sourceDir( ssc.androidTest )
+
+		if ( testDir == androidTestDir ) {
+			// Houston, we have a problem! androidTest uses 'test' dir.
+			// We'll be nice and try to use directory 'unit-test' instead.
+			testDir = new File( srcDir, 'unit-test' )
+		}
+
+		if ( !testDir.exists() ) {
+			return null
+		}
+
+		// Create tester project.
+		Project aspirant = new ProjectBuilder()
+				.withName( this.android.name + '-test' )
+				.withParent( this.android )
+				.withProjectDir( this.android.projectDir )
+				.build();
+
+		// Pre apply groovy, clear main SourceSet, correct test SourceSet.
+		// Kind of ugly hack to use internal Gradle API, but source is not exposed :(
+		aspirant.apply plugin: 'groovy'
+		aspirant.sourceSets.main.allSource.@source.each {
+			it.srcDirs = []
+		}
+		aspirant.sourceSets.test.allSource.@source.each {
+			it.srcDirs = it.srcDirs.collect {
+				new File( testDir, it.name )
+			}
+		}
+
+		return aspirant
+	}
+
+	/**
+	 * Finds the first source dir for a sourceSet
+	 *
+	 * @param ass Android Source Set.
+	 * @return the directory as a {@link java.io.File}.
+	 */
+	private File sourceDir( AndroidSourceSet ass ) {
+		ass.java.srcDirs.find().parentFile
 	}
 
 	/**
@@ -258,10 +338,10 @@ class RoboSpockConfiguration {
 		Project aspirant = this.tester.parent
 		if ( aspirant != null && !isAndroid( aspirant ) ) {
 			// Look in siblings.
-			def tryPath = RoboSpockConfiguration.tryPath( this.tester.path )
+			def tryPath = tryPath( this.tester.path )
 			if ( tryPath.length() < this.tester.path.length() ) {
 				aspirant = aspirant.childProjects.values().find {
-					it.path == tryPath && RoboSpockConfiguration.isAndroid( it )
+					it.path == tryPath && isAndroid( it )
 				}
 			}
 		}
