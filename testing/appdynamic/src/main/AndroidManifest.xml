@@ -1,0 +1,16 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.example"
+          android:versionCode="1"
+          android:versionName="1.0">
+
+    <application android:label="App" android:allowBackup="false" android:icon="@android:drawable/ic_delete">
+        <activity android:name=".AppDynamicActivity" android:label="App">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
