@@ -78,9 +78,6 @@ class RoboSpockTest extends Test {
 		minHeapSize = "128m"
 		maxHeapSize = "1024m"
 
-		// set JVM arguments for the test JVM(s)
-		jvmArgs '-XX:MaxPermSize=512m'
-
 		/*
 		 * Logging:
 		 */
