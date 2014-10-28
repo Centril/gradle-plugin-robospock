@@ -20,6 +20,8 @@ allprojects {
 	['idea','maven-publish', 'com.github.ben-manes.versions', 'com.github.hierynomus.license']
 		.each { apply plugin: it }
 
+	sourceCompatibility = 1.7
+
 	repositories {
 		jcenter()
 	}
