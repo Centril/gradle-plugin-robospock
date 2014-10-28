@@ -1,7 +1,12 @@
 CHANGELOG
 =====================
 
-## 0.2.0
+0.2.1
+---------------------
++ **BUGFIX:** added jdk1.7 compatibility to build.
+
+0.2.0
+---------------------
 + **FEATURE:** **Now possible to apply robospock on android plugin.**
     + If you must specify what the tester project is, you must do so in:
 	`project.ext.robospockTester`.
