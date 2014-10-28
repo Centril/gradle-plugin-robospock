@@ -21,6 +21,7 @@ import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.api.AndroidSourceSet
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.testfixtures.ProjectBuilder
 
@@ -93,17 +94,26 @@ class RoboSpockConfiguration {
 	 */
 	String objenesisVersion = '2.1'
 
-	//================================================================================
-	// Public non-DSL API:
-	//================================================================================
+	/**
+	 * You can provide closures that will be run after
+	 * {@link RoboSpockAction} has finished its work.
+	 */
+	List<Closure> afterConfigured = []
+
+	/**
+	 * Read Only robospock testing task, can only be read from
+	 * in {@link #afterConfigured(groovy.lang.Closure)}.
+	 */
+	Task robospockTask
 
 	/**
 	 * The perspective (of a project) from which things are applied.
 	 */
 	Project perspective
-	protected void setPerspective( Project p ) {
-		this.perspective = p
-	}
+
+	//================================================================================
+	// Public non-DSL API:
+	//================================================================================
 
 	/**
 	 * Constructs the configuration.
@@ -120,6 +130,18 @@ class RoboSpockConfiguration {
 		} else {
 			setTester( proj )
 		}
+	}
+
+	/**
+	 * Adds a closure to be executed once the configuration of everything is done.
+	 * The only and first argument to the closure is the RoboSpockConfiguration.
+	 *
+	 * @param c the closure to execute.
+	 * @return this RoboSpockConfiguration.
+	 */
+	public RoboSpockConfiguration afterConfigured( Closure c ) {
+		this.afterConfigured << c
+		return this
 	}
 
 	/**
@@ -229,6 +251,27 @@ class RoboSpockConfiguration {
 	//================================================================================
 	// Internal logic, setters, etc.
 	//================================================================================
+
+	protected void setAfterConfigured( List<Closure> l ) {
+		this.roboospockTask = t
+	}
+
+	protected void setRoboospockTask( Task t ) {
+		this.roboospockTask = t
+	}
+
+	protected void setPerspective( Project p ) {
+		this.perspective = p
+	}
+
+	/**
+	 * Executes all afterConfigured closures.
+	 */
+	protected void executeAfterConfigured() {
+		this.afterConfigured.each {
+			it( this )
+		}
+	}
 
 	/**
 	 * The suffix to remove from {@link #tester}.path

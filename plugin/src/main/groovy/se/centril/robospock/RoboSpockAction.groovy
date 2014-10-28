@@ -65,8 +65,12 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 
 		def run = [this.&addJCenter, this.&addAndroidRepositories, this.&addDependencies,
 				   this.&fixSupportLib, this.&copyAndroidDependencies, this.&setupTestTask,
-				   this.&fixSdkVerTask]
+				   this.&fixSdkVerTask, this.&executeAfterConfigured]
 		run.each { it cfg }
+	}
+
+	def executeAfterConfigured( RoboSpockConfiguration cfg ) {
+		cfg.executeAfterConfigured()
 	}
 
 	/**
@@ -113,14 +117,14 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
 	def setupTestTask( RoboSpockConfiguration cfg ) {
-		def task = cfg.tester.tasks.create( name: robospockTaskName, type: RoboSpockTest ) {
+		cfg.robospockTask = cfg.tester.tasks.create( name: robospockTaskName, type: RoboSpockTest ) {
 			config = cfg
 		}
 
 		// Remove all actions on test & make it basically do robospock task.
 		cfg.tester.test {
 			deleteAllActions()
-			dependsOn task
+			dependsOn cfg.robospockTask
 		}
 	}
 

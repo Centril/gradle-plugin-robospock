@@ -31,3 +31,9 @@ android {
     compileSdkVersion 20
     buildToolsVersion "20"
 }
+
+robospock {
+	afterConfigured {
+		println "robospock.afterConfigured says: ${it.robospockTask}"
+	}
+}
