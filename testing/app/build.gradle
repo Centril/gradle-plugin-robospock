@@ -21,11 +21,11 @@ android {
 	buildTypes {
 		defaultConfig {
 			minSdkVersion 9
-			targetSdkVersion 18
+			targetSdkVersion 20
 		}
 	}
     lintOptions {
-        abortOnError false
+        abortOnError true
     }
 
     compileSdkVersion 20

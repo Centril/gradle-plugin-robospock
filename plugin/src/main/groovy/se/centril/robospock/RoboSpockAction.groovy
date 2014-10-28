@@ -16,14 +16,14 @@
 
 package se.centril.robospock
 
+import com.jakewharton.sdkmanager.internal.PackageResolver
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.bundling.Zip
-
-import com.jakewharton.sdkmanager.internal.PackageResolver
+import org.gradle.api.tasks.Copy
 
 /**
  * {@link RoboSpockAction}: Is the heart of the plugin,
@@ -64,7 +64,8 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 		cfg.verify()
 
 		def run = [this.&addJCenter, this.&addAndroidRepositories, this.&addDependencies,
-				   this.&fixSupportLib, this.&copyAndroidDependencies, this.&setupTestTask]
+				   this.&fixSupportLib, this.&copyAndroidDependencies, this.&setupTestTask,
+				   this.&fixSdkVerTask]
 		run.each { it cfg }
 	}
 
@@ -124,6 +125,31 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	}
 
 	/**
+	 * Sets up a task run after processManifest to clamp any
+	 * SDK VERSION in the eyes of roboelectric to API level 18.
+	 *
+	 * @param cfg the {@link RoboSpockConfiguration} object.
+	 */
+	def fixSdkVerTask( RoboSpockConfiguration cfg ) {
+		cfg.android.android.applicationVariants.each { variant ->
+			def taskName = "robospockCopy${variant.name.capitalize()}Manifest"
+			def copier = cfg.android.tasks.create( name: taskName, type: Copy ) {
+				from( "${cfg.android.buildDir}" ) {
+					include "intermediates/manifests/full/${variant.dirName}/AndroidManifest.xml"
+				}
+				into( "${cfg.tester.buildDir}" )
+				filter {
+					it.replaceFirst( ~/android\:targetSdkVersion\=\"(\d{1,2})\"/, {
+						def ver = Integer.parseInt( it[1] ) > 18
+						return 'android:targetSdkVersion="' + 18 + '"'
+					} )
+				}
+			}
+			variant.getOutputs()[0].processManifest.finalizedBy copier
+		}
+	}
+
+	/**
 	 * Adds all the dependencies of this configuration to {@link Project}.
 	 *
 	 * @param cfg the {@link RoboSpockConfiguration} object.
@@ -171,32 +197,31 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
 	def copyAndroidDependencies( RoboSpockConfiguration cfg ) {
+		def tester = cfg.tester
 		def android = cfg.android
 		def projDep = getSubprojects( android ) + android
 
 		def zip2jarDependsTask = "compile${cfg.buildType.capitalize()}Java"
 
-		def p = cfg.tester
-
 		projDep.each { proj ->
-			def libsPath = 'build/libs'
-			def aarPath = 'build/intermediates/exploded-aar/'
+			def libsPath = new File( android.buildDir, 'libs' )
+			def aarPath = new File( android.buildDir, 'intermediates/exploded-aar/' )
 
 			// Create zip2jar task & make compileJava depend on it.
 			Task zip2jar = proj.tasks.create( name: ZIP_2_JAR_TASK, type: Zip ) {
 				dependsOn zip2jarDependsTask
 				description ZIP_2_JAR_DESCRIPTION
-				from "build/intermediates/classes/${cfg.buildType}"
-				destinationDir = proj.file( libsPath )
+				from new File( android.buildDir, "intermediates/classes/${cfg.buildType}" )
+				destinationDir = libsPath
 				extension = "jar"
 			}
-			p.tasks.compileJava.dependsOn( zip2jar )
+			tester.tasks.compileTestJava.dependsOn( zip2jar )
 
 			// Add all jars frm zip2jar + exploded-aar:s to dependencies.
-			p.dependencies {
-				compile p.fileTree( dir: proj.file( libsPath ), include: "*.jar" )
-				compile p.fileTree( dir: proj.file( aarPath ), include: ['*/*/*/*.jar'] )
-				compile p.fileTree( dir: proj.file( aarPath ), include: ['*/*/*/*/*.jar'] )
+			tester.dependencies {
+				testCompile tester.fileTree( dir: libsPath, include: "*.jar" )
+				testCompile tester.fileTree( dir: aarPath, include: ['*/*/*/*.jar'] )
+				testCompile tester.fileTree( dir: aarPath, include: ['*/*/*/*/*.jar'] )
 			}
 		}
 	}

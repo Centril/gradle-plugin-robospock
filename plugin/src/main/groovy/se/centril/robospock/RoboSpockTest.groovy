@@ -16,6 +16,7 @@
 
 package se.centril.robospock
 
+import org.apache.tools.ant.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.Test
@@ -40,10 +41,11 @@ class RoboSpockTest extends Test {
 
 	@TaskAction
 	public void executeTests() {
-		def p = config.tester
+		def t = config.tester
+		def a = config.android
 
 		// Make check depend on this task.
-		p.tasks.getByName( JavaBasePlugin.CHECK_TASK_NAME ).dependsOn( this )
+		t.tasks.getByName( JavaBasePlugin.CHECK_TASK_NAME ).dependsOn( this )
 
 		/*
 		 * Naming:
@@ -60,12 +62,10 @@ class RoboSpockTest extends Test {
 		systemProperty 'ro.build.date.utc', '1'
 		systemProperty 'ro.kernel.qemu', '0'
 
-		def android = config.android
-
-		systemProperty 'android.resources', android.file( "build/intermediates/res/${config.buildType}" )
-		systemProperty 'android.assets', android.file( "build/intermediates/res/${config.buildType}/raw" )
-		systemProperty 'android.manifest', android.file( "build/intermediates/manifests/full/${config.buildType}/AndroidManifest.xml" )
-		def wd = android.file( 'src/main' )
+		systemProperty 'android.resources', this.buildPath( a, 'res', '' )
+		systemProperty 'android.assets', this.buildPath( a, 'res', 'raw' )
+		systemProperty 'android.manifest', this.buildPath( t, 'manifests/full', 'AndroidManifest.xml' )
+		def wd = config.mainSourceDir()
 		if ( wd.exists() ) {
 			workingDir = wd
 		}
@@ -107,5 +107,17 @@ class RoboSpockTest extends Test {
 		 */
 
 		super.executeTests()
+	}
+
+	/**
+	 * Returns a {buildDir}/intermediates relative File taking buildType into account.
+	 *
+	 * @param proj the project of reference in relativity.
+	 * @param pre the string before buildType.
+	 * @param post the string after buildType.
+	 * @return the {@link java.io.File}
+	 */
+	def File buildPath( proj, pre, post ) {
+		return new File( proj.buildDir, "intermediates/${pre}/${config.buildType}/${post}" )
 	}
 }

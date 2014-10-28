@@ -217,6 +217,15 @@ class RoboSpockConfiguration {
 		getAndroid().android.sdkDirectory
 	}
 
+	/**
+	 * Returns the main source dir for android project.
+	 *
+	 * @return the source dir as a {@link java.io.File}
+	 */
+	public File mainSourceDir() {
+		return sourceDir( this.android.android.sourceSets.main )
+	}
+
 	//================================================================================
 	// Internal logic, setters, etc.
 	//================================================================================
@@ -280,10 +289,9 @@ class RoboSpockConfiguration {
 	 * @return the created tester project.
 	 */
 	private Project createTesterProject() {
-		def ssc = this.android.android.sourceSets
-		File srcDir = sourceDir( ssc.main ).parentFile
+		File srcDir = mainSourceDir().parentFile
 		File testDir = new File( srcDir, 'test' )
-		File androidTestDir = sourceDir( ssc.androidTest )
+		File androidTestDir = sourceDir( this.android.android.sourceSets.androidTest )
 
 		if ( testDir == androidTestDir ) {
 			// Houston, we have a problem! androidTest uses 'test' dir.
@@ -301,6 +309,9 @@ class RoboSpockConfiguration {
 				.withParent( this.android )
 				.withProjectDir( this.android.projectDir )
 				.build();
+
+		// Move buildDir, ensure no conflict.
+		aspirant.buildDir = new File( aspirant.buildDir, 'robospock' )
 
 		// Pre apply groovy, clear main SourceSet, correct test SourceSet.
 		// Kind of ugly hack to use internal Gradle API, but source is not exposed :(
