@@ -5,12 +5,11 @@
 <!-- MarkdownTOC -->
 
 - [Usage](#usage)
-	- [Applying from a tester project:](#applying-from-a-tester-project)
-	- [Applying from an android project: (Since 0.2.0)](#applying-from-an-android-project-since-020)
+	- [Applying from a tester project](#applying-from-a-tester-project)
+	- [Applying from an android project (Since 0.2.0)](#applying-from-an-android-project-since-020)
 	- [Advanced options](#advanced-options)
 - [Changelog](#changelog)
-- [Bugs / Issues / Feature requests](#bugs--issues--feature-requests)
-- [Contribution](#contribution)
+- [Bugs / Issues / Feature requests / Contribution](#bugs--issues--feature-requests--contribution)
 - [License](#license)
 
 <!-- /MarkdownTOC -->
@@ -23,13 +22,10 @@ And all of this happens using Roboelectric which avoids the hassle and latency i
 
 ## Usage
 
-**Using the plugin requires you to have your android application or library
-in one project, and your testing code in another project.** This is a restriction that the android gradle plugin puts on us, and it is not possible to circumvent it today, as doing: `apply plugin: 'groovy'` conflicts with the android plugin.
+### Applying from a tester project
 
-### Applying from a tester project:
-
-Given an android project with the path **:app**, and a test project with the
-path **:test**, we can configure the app-test project to use this plugin like so:
+Given an android project with the path **`:app`**, and a test project with the
+path **`:test`**, we can apply the plugin on **`:app`** with:
 
 ```groovy
 buildscript {
@@ -48,9 +44,7 @@ robospock {
 }
 ```
 
-If your test project is named **app-test**, i.e the same as the application
-or library but with the suffix `-test` (to be exact, the regex: `/[^a-zA-Z0-9]?test/`), and if the app is the parent of the test project or is a sibling of it, then you may simply omit specifying the `robospock.android` part alltogether as it is automatically configured.
-Then it becomes:
+If your test project is named **`app-test`**, i.e the same as the application or library but with the suffix `-test` (to be exact, the regex: `/[^a-zA-Z0-9]?test/`), and if the app is the parent of the test project or is a sibling of it, then you may simply omit specifying the `robospock.android` part alltogether as it is automatically configured. Then it becomes:
 
 ```groovy
 buildscript {
@@ -64,20 +58,20 @@ buildscript {
 apply plugin: 'robospock'
 ```
 
-When you have done this, you can use the `test` task as usual,
-or `robospock` task if you only want to run robospock tests.
+When you have done this, you can use the **`test`** task as usual, or **`robospock`** task if you only want to run robospock tests.
 
-### Applying from an android project: (Since 0.2.0)
-
+### Applying from an android project (Since 0.2.0)
 
 It is also possible to apply the plugin from an android project.
+
+If you place your testing files in **`{android-root}/src/test`** then you don't even have to create a tester project, it will be made automatically for you.
 
 Due to restrictions in gradle, if you want to specify what the tester project is, you must do so in a project property before the plugin is applied like so:
 ```groovy
 project.ext.robospockTester = ':<path_to_tester_project>'
 ```
 
-Other than that, the procedure is the exact same as before. If you have a project named `test` as a child or `app-test` as a child or a sibling of the android project, it will be automatically found and used. This can rid you of the need for a `build.gradle` file for the tester project altogether.
+Other than that, the procedure is the exact same as before. If you have a project named **`test`** as a child or **`app-test`** as a child or a sibling of the android project, it will be automatically found and used. This can rid you of the need for a `build.gradle` file for the tester project altogether.
 
 ### Advanced options
 
@@ -116,26 +110,35 @@ robospock {
 	// default: '2.1'
 	// If the dependency is unwanted, set the string to empty.
 	objenesisVersion = '<dependency_version>'
+
+	// You can provide closures that will be run
+	// after RoboSpockAction has finished its work.
+	afterConfigured { RoboSpockConfiguration c ->
+		// do some additional configuration.
+	}
+
+	// (Read Only) robospock testing task,
+	// can only be read from afterConfigured closures.
+	robospockTask
+
+	// The project you applied this plugin from.
+	perspective
 }
 ```
 
-By default, the plugin adds the much used optional spock-dependencies `objenesis` and `cglib` which are used for mocking, etc. You can change the version used, or disable them by setting an empty version.
+By default, the plugin adds the much used optional spock-dependencies **`objenesis`** and **`cglib`** which are used for mocking, etc. You can change the version used, or disable them by setting an empty version.
 
 ## Changelog
 
-See [CHANGES.md]
+See **[CHANGES.md]**
 
-## Bugs / Issues / Feature requests
+## Bugs / Issues / Feature requests / Contribution
 
-Please use the issue system that github provides to report bugs/issues or request an enhancement.
-
-## Contribution
-
-This project is in its infancy, so pull requests are more than welcome.
+Want to contribute? Great stuff! Please use the issue system that github provides to report bugs/issues or request an enhancement. Pull requests are also more than welcome.
 
 ## License
 
-[gradle-plugin-robospock] is licensed under **Apache License 2.0**, see [LICENSE.md] for more information.
+[gradle-plugin-robospock] is licensed under **Apache License 2.0**, see **[LICENSE.md]** for more information.
 
 <!-- references -->
 

@@ -1,15 +1,16 @@
 CHANGELOG
 =====================
 
-0.2.0 (Not released)
----------------------
-+ FEATURE: Now possible to apply robospock on android plugin.
-  if you must specify what the tester project is, you must do so in:
+## 0.2.0
++ **FEATURE:** **Now possible to apply robospock on android plugin.**
+    + If you must specify what the tester project is, you must do so in:
 	`project.ext.robospockTester`.
-  Otherwise the plugin looks for a child of android project named
-  `test` or children according to the rules for `robospock.android`.
-  Next it looks for a sibling according to `robospock.android` rules.
-+ BREAKING:	property `robospock.testing` removed, now `robospock.android`.
+    + Otherwise the plugin looks for a child of android project named `test` or children according to the rules for `robospock.android`.
+    + Next it looks for a sibling according to `robospock.android` rules.
+    + Finally, it tries to look for files in the directory `test` which is a sibling of the parent of the first directory specified in `android.sourceSets.main.java.srcDirs`, which with the standard setup becomes: `{android-root}/src/test`. If that is occupied by the sourceSet `androidTest` it will instead use the directory named `unit-test`. This will also create a test project dynamically for you as a subproject of the android project and name it `{android-project-name}-test`
++ **FEATURE:** **Added afterConfigured closure to robospock extension.**
++ **FEATURE:** **Added robospockTask to robospock extension.**
++ **BREAKING:** **property `robospock.testing` renamed `robospock.android`.**
 
 0.1.2
 ---------------------
