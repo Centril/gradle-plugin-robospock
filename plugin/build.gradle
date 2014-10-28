@@ -68,9 +68,9 @@ task groovydocJar( type: Jar, dependsOn: groovydoc ) {
 	from groovydoc.destinationDir
 }
 
-ext.mavenArtifacts = [sourceJar, groovydocJar]
-
 publishing {
+	ext.mavenArtifacts = [sourceJar, groovydocJar]
+
 	repositories {
 		maven {
 			url uri( "../maven-deploy" )
@@ -81,7 +81,7 @@ publishing {
 		maven( MavenPublication ) {
 			from components.java
 
-			mavenArtifacts.each { 
+			mavenArtifacts.each {
 				artifact( it ) {
 					classifier = it.classifier
 				}
@@ -150,7 +150,7 @@ bintray {
 			name = project.version
             vcsTag = project.version
 			attributes = [
-				'gradle-plugin': "robospock:${group}:${projname}"
+				'gradle-plugin': "${group}:${group}:${projname}"
 			]
             gpg {
             	sign = true
