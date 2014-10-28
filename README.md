@@ -1,4 +1,4 @@
-[![badge: Download]][badge url: Download] [![badge: Build Status]][badge url: Build Status] [![badge: Coverage Status]][badge url: Coverage Status] [![badge: LICENSE]][LICENSE.md] [![badge: Semver 2.0.0]][badge url: Semver 2.0.0]
+[![badge: Download]][badge url: Download] [![badge: LICENSE]][LICENSE.md] [![badge: Semver 2.0.0]][badge url: Semver 2.0.0] [![badge: Build Status]][badge url: Build Status] [![badge: Coverage Status]][badge url: Coverage Status] [![badge: gratipay]][badge url: gratipay] 
 
 # [gradle-plugin-robospock]
 
@@ -11,14 +11,15 @@
 - [Changelog](#changelog)
 - [Bugs / Issues / Feature requests / Contribution](#bugs--issues--feature-requests--contribution)
 - [License](#license)
+- [Authors](#authors)
 
 <!-- /MarkdownTOC -->
 
-[gradle-plugin-robospock] is a small gradle plugin for the sole purpose of setting up **[robospock]** (**[gradle]** + **[spock]** +  **[roboelectric]**) as easily as possible.
+**[gradle-plugin-robospock]** is a small gradle plugin for the sole purpose of setting up **[robospock]** (**[gradle]** + **[spock]** +  **[roboelectric]**) as easily as possible.
 
 Robospock will basically let you do unit/integration testing of android specific code using the praised spock framework which uses specification driven testing and BDD (Behavior-Driven Development) using **[groovy]**.
 
-And all of this happens using Roboelectric which avoids the hassle and latency involved in doing testing on an actual android device or worse, an emulator.
+And all of this happens using **[roboelectric]** which avoids the hassle and latency involved in doing testing on an actual android device or worse, an emulator.
 
 ## Usage
 
@@ -138,7 +139,11 @@ Want to contribute? Great stuff! Please use the issue system that github provide
 
 ## License
 
-[gradle-plugin-robospock] is licensed under **Apache License 2.0**, see **[LICENSE.md]** for more information.
+**[gradle-plugin-robospock]** is licensed under **Apache License 2.0**, see **[LICENSE.md]** for more information.
+
+## Authors
+
+See **[AUTHORS.md]**
 
 <!-- references -->
 
@@ -146,14 +151,15 @@ Want to contribute? Great stuff! Please use the issue system that github provide
 
 [badge: Download]: https://api.bintray.com/packages/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/images/download.svg
 [badge url: Download]: https://bintray.com/centril/maven/se.centril.robospock%3Agradle-plugin-robospock/_latestVersion
-[badge: Build Status]: https://travis-ci.org/Centril/gradle-plugin-robospock.svg?branch=master
+[badge: Build Status]: http://img.shields.io/travis/Centril/gradle-plugin-robospock.svg
 [badge url: Build Status]: https://travis-ci.org/Centril/gradle-plugin-robospock
-[badge: Coverage Status]: https://coveralls.io/repos/Centril/gradle-plugin-robospock/badge.png
+[badge: Coverage Status]: http://img.shields.io/coveralls/Centril/gradle-plugin-robospock.svg
 [badge url: Coverage Status]: https://coveralls.io/r/Centril/gradle-plugin-robospock
 [badge: License]: http://img.shields.io/badge/license-ASL_2.0-blue.svg
-[LICENSE.md]: LICENSE.md
 [badge: Semver 2.0.0]: http://img.shields.io/badge/semver-2.0.0-blue.svg
 [badge url: Semver 2.0.0]: http://semver.org/spec/v2.0.0.html
+[badge: gratipay]: http://img.shields.io/gratipay/Centril.svg
+[badge url: gratipay]: https://gratipay.com/Centril
 
 [robospock]: https://github.com/Polidea/RoboSpock
 [gradle]: http://www.gradle.org/
@@ -162,6 +168,8 @@ Want to contribute? Great stuff! Please use the issue system that github provide
 [groovy]: http://groovy.codehaus.org
 
 [CHANGES.md]: CHANGES.md
+[LICENSE.md]: LICENSE.md
+[AUTHORS.md]: AUTHORS.md
 
 <!-- references -->
 
