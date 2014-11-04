@@ -16,8 +16,6 @@
 
 package se.centril.robospock
 
-import com.android.build.gradle.AppPlugin
-import com.android.build.gradle.LibraryPlugin
 import com.android.build.gradle.api.AndroidSourceSet
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -110,10 +108,6 @@ class RoboSpockConfiguration {
 	 * The perspective (of a project) from which things are applied.
 	 */
 	Project perspective
-
-	//================================================================================
-	// Public non-DSL API:
-	//================================================================================
 
 	/**
 	 * Constructs the configuration.
@@ -217,6 +211,10 @@ class RoboSpockConfiguration {
 
 		return this.tester
 	}
+
+	//================================================================================
+	// Public non-DSL API:
+	//================================================================================
 
 	/**
 	 * Verifies that the configuration is sound.
@@ -420,6 +418,26 @@ class RoboSpockConfiguration {
 	 * @return true if it is.
 	 */
 	private static boolean isAndroid( Project project ) {
-		return project.plugins.hasPlugin( AppPlugin ) || project.plugins.hasPlugin( LibraryPlugin )
+		return isApplication( project ) || isLibrary( project )
+	}
+
+	/**
+	 * Checks if the provided project is an android application project.
+	 *
+	 * @param project The {@link Project} to check.
+	 * @return true if it is.
+	 */
+	private static boolean isApplication( Project project ) {
+		return project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('android')
+	}
+
+	/**
+	 * Checks if the provided project is an android-library project.
+	 *
+	 * @param project The {@link Project} to check.
+	 * @return true if it is.
+	 */
+	private static boolean isLibrary( Project project ) {
+		return project.plugins.hasPlugin('com.android.library') || project.plugins.hasPlugin('android-library')
 	}
 }
