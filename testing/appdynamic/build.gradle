@@ -18,18 +18,19 @@
 	.each { apply plugin: it }
 
 android {
-	buildTypes {
-		defaultConfig {
-			minSdkVersion 9
-			targetSdkVersion 20
-		}
-	}
-    lintOptions {
-        abortOnError true
-    }
+	compileSdkVersion 20
+	buildToolsVersion "20"
 
-    compileSdkVersion 20
-    buildToolsVersion "20"
+	defaultConfig {
+		versionCode 1
+		versionName "1.0"
+		minSdkVersion 9
+		targetSdkVersion 20
+	}
+
+	lintOptions {
+		abortOnError true
+	}
 }
 
 robospock {
