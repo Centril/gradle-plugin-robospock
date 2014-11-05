@@ -33,6 +33,11 @@ ext.spock = [
 ]
 
 /*
+ * JDK1.7 compatibility:
+ */
+sourceCompatibility = 1.7
+
+/*
  * jacoco:
  */
 jacocoTestReport {
