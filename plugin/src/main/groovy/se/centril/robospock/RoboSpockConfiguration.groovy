@@ -298,10 +298,10 @@ class RoboSpockConfiguration {
 	}
 
 	/**
-	 * Finds an android project that is either the parent of {@link #tester}
-	 * or has a similar path/name as {@link #tester}
+	 * Finds a tester project that is either the child of {@link #android}
+	 * or has a similar path/name as {@link #android}
 	 *
-	 * @return an android project, or null if none found.
+	 * @return a tester project, or null if none found.
 	 */
 	private Project findTesterProject() {
 		def notAndroid = { !isAndroid( it ) }
