@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
-include 'plugin'
-project(':plugin').name = rootProject.name = 'gradle-plugin-robospock'
+['android-sdk-manager', 'com.android.library']
+	.each { apply plugin: it }
 
-include ':testing:app', ':testing:app-test'
-include ':testing:lib-explicit', ':testing:lib-explicit-test'
-include ':testing:appinv', ':testing:appinv:appinv-test'
-include ':testing:appdynamic'
+android {
+	compileSdkVersion 20
+	buildToolsVersion "20"
+
+	defaultConfig {
+		versionCode 1
+		versionName "1.0"
+		minSdkVersion 9
+		targetSdkVersion 20
+	}
+
+	lintOptions {
+		abortOnError true
+	}
+}
