@@ -1,6 +1,12 @@
 CHANGELOG
 =====================
 
+0.3.0
+---------------------
++ **BREAKING:** **String setters of properties `robospock.tester` and  `robospock.android` removed.** Wrap the old value with: `project( <old_value> )` See https://jira.codehaus.org/browse/GROOVY-2500 for why this was necessary.
++ **BUGFIX:** JDK1.7 compability hopefully for real this time.
++ **BUGFIX:** Improved compability for libraries and better handling of some Robolectric bugs. See **[issue #6](/../../issues/6).**
+
 0.2.1
 ---------------------
 + **BUGFIX:** added jdk1.7 compatibility to build.
