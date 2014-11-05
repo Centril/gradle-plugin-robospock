@@ -65,7 +65,7 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 
 		def run = [this.&addJCenter, this.&addAndroidRepositories, this.&addDependencies,
 				   this.&fixSupportLib, this.&copyAndroidDependencies, this.&setupTestTask,
-				   this.&fixSdkVerTask, this.&executeAfterConfigured]
+				   this.&fixRobolectricBugs, this.&executeAfterConfigured]
 		run.each { it cfg }
 	}
 
@@ -129,27 +129,48 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	}
 
 	/**
-	 * Sets up a task run after processManifest to clamp any
-	 * SDK VERSION in the eyes of roboelectric to API level 18.
+	 * Fixes/addresses various bugs in robolectric.
 	 *
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
-	def fixSdkVerTask( RoboSpockConfiguration cfg ) {
+	def fixRobolectricBugs( RoboSpockConfiguration cfg ) {
+		def manifest = 'AndroidManifest.xml'
+		def correctManifestPath = 'intermediates/manifests/full'
+
 		cfg.variants.each { variant ->
-			def taskName = "robospockCopy${variant.name.capitalize()}Manifest"
-			def copier = cfg.android.tasks.create( name: taskName, type: Copy ) {
-				from( "${cfg.android.buildDir}" ) {
-					include "intermediates/manifests/full/${variant.dirName}/AndroidManifest.xml"
+			def taskName = "robospockFixRobolectricBugs${variant.name.capitalize()}"
+			def copier = cfg.android.tasks.create( name: taskName )
+			variant.getOutputs()[0].processResources.finalizedBy copier
+
+			copier << {
+				// Library: Copy manifest, intermediates/manifests/full/ -> intermediates/bundles/
+				cfg.android.copy {
+					from( "${cfg.android.buildDir}/intermediates/bundles/${variant.dirName}/" ) {
+						include manifest
+					}
+					into( "${cfg.android.buildDir}/${correctManifestPath}/${variant.dirName}/" )
 				}
-				into( "${cfg.tester.buildDir}" )
-				filter {
-					it.replaceFirst( ~/android\:targetSdkVersion\=\"(\d{1,2})\"/, {
-						def ver = Integer.parseInt( it[1] ) > 18
-						return 'android:targetSdkVersion="' + 18 + '"'
-					} )
+
+				// Manifest: Clamp any SDK VERSION in the eyes of roboelectric to API level 18.
+				cfg.android.copy {
+					from( "${cfg.android.buildDir}" ) {
+						include "${correctManifestPath}/${variant.dirName}/${manifest}"
+					}
+					into( "${cfg.tester.buildDir}" )
+					filter {
+						it.replaceFirst( ~/android\:targetSdkVersion\=\"(\d{1,2})\"/, {
+							def ver = Integer.parseInt( it[1] ) > 18
+							return 'android:targetSdkVersion="' + 18 + '"'
+						} )
+					}
+				}
+
+				// Library: Copy intermediates/bundles/{buildType}/res/ -> intermediates/res/{buildType}/
+				cfg.android.copy {
+					from( "${cfg.android.buildDir}/intermediates/bundles/${variant.dirName}/res/" )
+					into( "${cfg.android.buildDir}/intermediates/res/${variant.dirName}/" )
 				}
 			}
-			variant.getOutputs()[0].processManifest.finalizedBy copier
 		}
 	}
 

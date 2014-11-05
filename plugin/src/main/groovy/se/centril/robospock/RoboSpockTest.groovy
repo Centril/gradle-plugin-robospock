@@ -62,9 +62,13 @@ class RoboSpockTest extends Test {
 		systemProperty 'ro.build.date.utc', '1'
 		systemProperty 'ro.kernel.qemu', '0'
 
+		// set manifest.
+		systemProperty 'android.manifest', this.buildPath( t, 'manifests/full', 'AndroidManifest.xml' )
+
 		systemProperty 'android.resources', this.buildPath( a, 'res', '' )
 		systemProperty 'android.assets', this.buildPath( a, 'res', 'raw' )
-		systemProperty 'android.manifest', this.buildPath( t, 'manifests/full', 'AndroidManifest.xml' )
+
+		// set working directory.
 		def wd = config.mainSourceDir()
 		if ( wd.exists() ) {
 			workingDir = wd
