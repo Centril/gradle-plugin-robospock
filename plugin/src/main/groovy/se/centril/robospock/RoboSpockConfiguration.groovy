@@ -17,6 +17,7 @@
 package se.centril.robospock
 
 import com.android.build.gradle.api.AndroidSourceSet
+
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -213,7 +214,7 @@ class RoboSpockConfiguration {
 	}
 
 	//================================================================================
-	// Public non-DSL API:
+	// Public non-DSL API: - These parts are internal and are subject to change.
 	//================================================================================
 
 	/**
@@ -244,6 +245,16 @@ class RoboSpockConfiguration {
 	 */
 	public File mainSourceDir() {
 		return sourceDir( this.android.android.sourceSets.main )
+	}
+
+	/**
+	 * Returns the android variants applicable for the android project.
+	 *
+	 * @return the variants.
+	 */
+	public def getVariants() {
+		def android = this.android.android
+		return isLibrary( this.android ) ? android.libraryVariants : android.applicationVariants
 	}
 
 	//================================================================================

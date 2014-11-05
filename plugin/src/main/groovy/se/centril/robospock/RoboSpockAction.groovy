@@ -135,7 +135,7 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	 * @param cfg the {@link RoboSpockConfiguration} object.
 	 */
 	def fixSdkVerTask( RoboSpockConfiguration cfg ) {
-		cfg.android.android.applicationVariants.each { variant ->
+		cfg.variants.each { variant ->
 			def taskName = "robospockCopy${variant.name.capitalize()}Manifest"
 			def copier = cfg.android.tasks.create( name: taskName, type: Copy ) {
 				from( "${cfg.android.buildDir}" ) {

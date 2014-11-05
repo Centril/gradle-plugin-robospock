@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-['android-sdk-manager', 'com.android.application']
+['android-sdk-manager', 'com.android.library']
 	.each { apply plugin: it }
 
 android {
