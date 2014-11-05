@@ -129,11 +129,11 @@ class RoboSpockConfigurationSpecification extends Specification {
 			def a = androidProject()
 			def c = new RoboSpockConfiguration( a )
 		when:
-			c.setTester( a.path )
+			c.setTester( a )
 		then:
 			thrown( GradleException )
 		when:
-			c.setTester( t.path )
+			c.setTester( t )
 		then:
 			notThrown( GradleException )
 			c.getTester() == t
@@ -161,11 +161,11 @@ class RoboSpockConfigurationSpecification extends Specification {
 			def c = new RoboSpockConfiguration( t )
 			def a = androidProject()
 		when:
-			c.setAndroid( t.path )
+			c.setAndroid( t )
 		then:
 			thrown( GradleException )
 		when:
-			c.setAndroid( a.path )
+			c.setAndroid( a )
 		then:
 			notThrown( GradleException )
 			c.getAndroid() == a

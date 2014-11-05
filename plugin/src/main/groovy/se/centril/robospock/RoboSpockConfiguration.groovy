@@ -140,15 +140,6 @@ class RoboSpockConfiguration {
 	}
 
 	/**
-	 * Sets the path of the tester {@link Project} testing the android project.
-	 *
-	 * @param t the path of the tester {@link Project}.
-	 */
-	public void setTester( String t ) {
-		this.setTester( android.project( t ) )
-	}
-
-	/**
 	 * Sets the tester {@link Project}.
 	 *
 	 * @param t the tester {@link Project} to set.
@@ -159,15 +150,6 @@ class RoboSpockConfiguration {
 			throw new GradleException( "${t} must not be an android project." )
 		}
 		this.tester = t
-	}
-
-	/**
-	 * Sets the path of the android {@link Project} being tested.
-	 *
-	 * @param t the path of the android {@link Project}.
-	 */
-	public void setAndroid( String t ) {
-		this.setAndroid( tester.project( t ) )
 	}
 
 	/**
