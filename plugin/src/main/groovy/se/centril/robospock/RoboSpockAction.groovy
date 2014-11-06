@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.StopExecutionException
 
 /**
  * {@link RoboSpockAction}: Is the heart of the plugin,
@@ -84,6 +85,33 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 			testCompile 'com.android.support:support-v4:19.0.1'
 		}
 		cfg.tester.ext.android = cfg.android.android
+
+		/*
+		 * Fix issue: https://github.com/Centril/gradle-plugin-robospock/issues/6
+		 * TODO: Remove once in upstream of com.jakewharton.sdkmanager.
+		 *
+		 * GroovyCastException: Cannot cast object '21.1.0' with class
+		 * 'com.android.sdklib.repository.FullRevision' to class
+		 * 'com.android.sdklib.repository.FullRevision'
+		 */
+		PackageResolver.metaClass.resolveBuildTools { ->
+		    def buildToolsRevision = project.android.buildToolsRevision
+		    log.debug "Build tools version: $buildToolsRevision"
+
+		    def buildToolsRevisionDir = new File(buildToolsDir, buildToolsRevision.toString())
+		    if (folderExists(buildToolsRevisionDir)) {
+		        log.debug 'Build tools found!'
+		        return
+		    }
+
+		    log.lifecycle "Build tools $buildToolsRevision missing. Downloading..."
+
+		    def code = androidCommand.update "build-tools-$buildToolsRevision"
+		    if (code != 0) {
+		        throw new StopExecutionException("Build tools download failed with code $code.")
+		    }
+		}
+
 		PackageResolver.resolve cfg.tester, cfg.sdkDir()
 	}
 
