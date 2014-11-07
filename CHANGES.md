@@ -4,6 +4,7 @@ CHANGELOG
 0.3.1
 ---------------------
 + **PERFORMANCE**: The robospock task won't be run if there are no changes now, instead it will become `UP-TO-DATE` as it should be. This should cut down on build times considerably when you modify some project but not another and the tests do not change.
++ **BUGFIX:** sdkmanager self-cast errror hopefully fixed, **[issue #6](/../../issues/6).**
 + **dev:** Travis CI should print out failures in tests verbosely.
 
 0.3.0
