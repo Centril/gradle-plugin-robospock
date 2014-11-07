@@ -147,6 +147,7 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	def setupTestTask( RoboSpockConfiguration cfg ) {
 		cfg.robospockTask = cfg.tester.tasks.create( name: robospockTaskName, type: RoboSpockTest ) {
 			config = cfg
+			configure()
 		}
 
 		// Remove all actions on test & make it basically do robospock task.
