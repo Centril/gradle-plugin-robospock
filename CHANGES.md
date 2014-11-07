@@ -1,6 +1,11 @@
 CHANGELOG
 =====================
 
+0.3.1
+---------------------
++ **PERFORMANCE**: The robospock task won't be run if there are no changes now, instead it will become `UP-TO-DATE` as it should be. This should cut down on build times considerably when you modify some project but not another and the tests do not change.
++ **dev:** Travis CI should print out failures in tests verbosely.
+
 0.3.0
 ---------------------
 + **BREAKING:** **String setters of properties `robospock.tester` and  `robospock.android` removed.** Wrap the old value with: `project( <old_value> )` See https://jira.codehaus.org/browse/GROOVY-2500 for why this was necessary.
