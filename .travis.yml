@@ -12,7 +12,7 @@ before_install:
 - chmod +x gradlew
 
 script:
-- ./gradlew clean build
+- ./gradlew clean build --full-stacktrace
 
 after_success:
-- ./gradlew jacocoTestReport coveralls
+- ./gradlew jacocoTestReport coveralls --full-stacktrace

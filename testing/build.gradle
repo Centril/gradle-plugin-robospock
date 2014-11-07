@@ -1,0 +1,11 @@
+// For CI (Travis, Jenkins, ...): output STDOUT & STDERR to gradle console.
+if ( System.getenv( 'CONTINUOUS_INTEGRATION' ) ) {
+	allprojects.findAll { it.plugins.hasPlugin( 'robospock' ) }.each {
+		robospock.afterConfigured {
+			it.robospockTask.testLogging {
+				// Make sure output from standard out or error is shown in Gradle output.
+				showStandardStreams = true
+			}
+		}
+	}
+}

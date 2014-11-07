@@ -26,26 +26,23 @@ import org.gradle.api.tasks.testing.Test
  *
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
  * @version 1.0
- * @since Oct , 02, 2014
+ * @since Oct, 02, 2014
  */
 class RoboSpockTest extends Test {
 	/*
 	 * Properties:
 	 */
-
 	RoboSpockConfiguration config
 
-	/*
-	 * Actions:
+	/**
+	 * Configures RoboSpock test additions.
+	 * Running is not optional to make the tests work.
+	 *
+	 * @param  cfg the configuration object to use.
 	 */
-
-	@TaskAction
-	public void executeTests() {
-		def t = config.tester
-		def a = config.android
-
+	public void configure() {
 		// Make check depend on this task.
-		t.tasks.getByName( JavaBasePlugin.CHECK_TASK_NAME ).dependsOn( this )
+		config.tester.tasks.getByName( JavaBasePlugin.CHECK_TASK_NAME ).dependsOn( this )
 
 		/*
 		 * Naming:
@@ -63,10 +60,10 @@ class RoboSpockTest extends Test {
 		systemProperty 'ro.kernel.qemu', '0'
 
 		// set manifest.
-		systemProperty 'android.manifest', this.buildPath( t, 'manifests/full', 'AndroidManifest.xml' )
+		systemProperty 'android.manifest', this.buildPath( config.tester, 'manifests/full', 'AndroidManifest.xml' )
 
-		systemProperty 'android.resources', this.buildPath( a, 'res', '' )
-		systemProperty 'android.assets', this.buildPath( a, 'res', 'raw' )
+		systemProperty 'android.resources', this.buildPath( config.android, 'res', '' )
+		systemProperty 'android.assets', this.buildPath( config.android, 'res', 'raw' )
 
 		// set working directory.
 		def wd = config.mainSourceDir()
@@ -105,12 +102,6 @@ class RoboSpockTest extends Test {
 			// by assigning only 'failed' and 'skipped' events
 			info.events = ["failed", "skipped"]
 		}
-
-		/*
-		 * Execute tests:
-		 */
-
-		super.executeTests()
 	}
 
 	/**
