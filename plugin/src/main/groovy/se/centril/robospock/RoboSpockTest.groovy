@@ -16,7 +16,6 @@
 
 package se.centril.robospock
 
-import org.apache.tools.ant.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.Test
