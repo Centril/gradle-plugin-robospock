@@ -240,8 +240,8 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	def addAndroidRepositories( RoboSpockConfiguration cfg ) {
 		def sdkDir = cfg.sdkDir()
 		cfg.tester.repositories {
-			maven { url "${sdkDir}/extras/android/m2repository" }
-			maven { url "${sdkDir}/extras/google/m2repository" }
+			maven { url new File(sdkDir, "extras/android/m2repository").toURI().toString() }
+			maven { url new File(sdkDir, "extras/google/m2repository").toURI().toString() }
 		}
 	}
 
