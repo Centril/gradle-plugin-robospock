@@ -83,7 +83,7 @@ class RoboSpockActionSpecification extends Specification {
 
 	def "addAndroidRepositories"() {
 		given:
-			def sdk = setupAndroid().android.sdkDirectory
+			def sdk = setupAndroid().android.sdkDirectory.toURI().toString()
 			action.addAndroidRepositories( config )
 		expect:
 			test.repositories
