@@ -16,8 +16,6 @@
 
 package se.centril.robospock
 
-import com.android.build.gradle.api.AndroidSourceSet
-
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -365,10 +363,10 @@ class RoboSpockConfiguration {
 	/**
 	 * Finds the first source dir for a sourceSet
 	 *
-	 * @param ass Android Source Set.
+	 * @param ass {@link AndroidSourceSet}.
 	 * @return the directory as a {@link java.io.File}.
 	 */
-	private File sourceDir( AndroidSourceSet ass ) {
+	private File sourceDir( ass ) {
 		ass.java.srcDirs.find().parentFile
 	}
 
