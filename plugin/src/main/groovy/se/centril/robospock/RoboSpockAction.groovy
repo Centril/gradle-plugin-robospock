@@ -257,7 +257,8 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 
 		def zip2jarDependsTask = "compile${cfg.buildType.capitalize()}Java"
 
-		projDep.each { proj ->
+		// Filter out duplicates due to project dependencies
+		projDep.unique().each { proj ->
 			def libsPath = new File( android.buildDir, 'libs' )
 			def aarPath = new File( android.buildDir, 'intermediates/exploded-aar/' )
 
