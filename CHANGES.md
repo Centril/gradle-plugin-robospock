@@ -1,9 +1,16 @@
 CHANGELOG
 =====================
 
+0.3.2
+---------------------
++ **DOCUMENTATION:** [README](README.md) now correctly specifies how to use the plugin. the android-sdk-manager plugin must be applied as well.
++ **PERFORMANCE:** Fix #8, Filtering out duplicate project dependencies.
++ **BUGFIX:** Removed all references to the android plugin, it is no longer needed as a buildscript classpath, for the plugin the plugin is applied on, for the plugin to run.
++ **BUGFIX:** Fix #10, Using URL/URI instead of straight path for maven URLs.
+
 0.3.1
 ---------------------
-+ **PERFORMANCE**: The robospock task won't be run if there are no changes now, instead it will become `UP-TO-DATE` as it should be. This should cut down on build times considerably when you modify some project but not another and the tests do not change.
++ **PERFORMANCE:** The robospock task won't be run if there are no changes now, instead it will become `UP-TO-DATE` as it should be. This should cut down on build times considerably when you modify some project but not another and the tests do not change.
 + **BUGFIX:** sdkmanager self-cast errror hopefully fixed, **[issue #6](/../../issues/6).**
 + **dev:** Travis CI should print out failures in tests verbosely.
 
