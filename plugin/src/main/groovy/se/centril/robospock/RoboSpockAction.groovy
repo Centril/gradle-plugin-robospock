@@ -43,19 +43,8 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 		// Add jcenter to buildscript repo.
 		addJCenterBuildScript( cfg )
 
-		def p = cfg.perspective
-
-		// Temporarily fix the issue with not being able to set the tester in inverse mode.
-		// Due to be removed in Gradle 2.2.
-		if ( p.hasProperty( 'robospockTester' ) ) {
-			cfg.tester = cfg.project.getProperty( 'robospockTester' )
-		}
-
-		// Apply the groovy plugin.
-		cfg.tester.apply plugin: 'groovy'
-
 		// Configure robospock.
-		p.afterEvaluate {
+		cfg.perspective.afterEvaluate {
 			new RoboSpockAction().execute( cfg )
 		}
 	}
@@ -64,12 +53,27 @@ class RoboSpockAction implements Action<RoboSpockConfiguration> {
 	void execute( RoboSpockConfiguration cfg ) {
 		cfg.verify()
 
-		def run = [this.&addJCenter, this.&addAndroidRepositories, this.&addDependencies,
+		def run = [this.&applyGroovy,
+		           this.&addJCenter, this.&addAndroidRepositories, this.&addDependencies,
 				   this.&fixSupportLib, this.&copyAndroidDependencies, this.&setupTestTask,
 				   this.&fixRobolectricBugs, this.&executeAfterConfigured]
 		run.each { it cfg }
 	}
 
+	/**
+	 * Applies the groovy plugin to the tester.
+	 *
+	 * @param cfg the {@link RoboSpockConfiguration} object.
+	 */
+	def applyGroovy( RoboSpockConfiguration cfg ) {
+		cfg.tester.apply plugin: 'groovy'
+	}
+
+	/**
+	 * Delegates to the executeAfterConfigured method of the configuration.
+	 *
+	 * @param cfg the {@link RoboSpockConfiguration} object.
+	 */
 	def executeAfterConfigured( RoboSpockConfiguration cfg ) {
 		cfg.executeAfterConfigured()
 	}
