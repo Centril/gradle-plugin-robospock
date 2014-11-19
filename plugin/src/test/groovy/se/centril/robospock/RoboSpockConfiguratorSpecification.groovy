@@ -23,13 +23,13 @@ import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 /**
- * Tests {@link RoboSpockPlugin}
+ * Tests {@link RoboSpockConfigurator}
  *
  * @author Centril <twingoow @ gmail.com> / Mazdak Farrokhzad.
  * @version 1.0
  * @since Oct, 02, 2014
  */
-class RoboSpockActionSpecification extends Specification {
+class RoboSpockConfiguratorSpecification extends Specification {
 	def "getSubprojects"() {
 		given:
 			def libA = androidLibraryProject( 'libraryA' )
@@ -41,7 +41,7 @@ class RoboSpockActionSpecification extends Specification {
 				compile libB
 			}
 		expect:
-			action.getSubprojects( android ).containsAll( [libB, libA] )
+			configurator.getSubprojects( android ).containsAll( [libB, libA] )
 	}
 
 	def "addDependencies"() {
@@ -51,7 +51,7 @@ class RoboSpockActionSpecification extends Specification {
 			config.robospockVersion = '0.5.+'
 			config.cglibVersion     = '3.1'
 			config.objenesisVersion = '2.1'
-			action.addDependencies( config )
+			configurator.addDependencies()
 		then:
 			test.configurations
 				.find { it.name == 'testCompile' }.allDependencies
@@ -69,7 +69,7 @@ class RoboSpockActionSpecification extends Specification {
 			config.robospockVersion = '0.5.+'
 			config.cglibVersion = ''
 			config.objenesisVersion = ''
-			action.addDependencies( config )
+			configurator.addDependencies()
 		then:
 			test.configurations
 					.find { it.name == 'testCompile' }.allDependencies
@@ -84,7 +84,7 @@ class RoboSpockActionSpecification extends Specification {
 	def "addAndroidRepositories"() {
 		given:
 			def sdk = setupAndroid().android.sdkDirectory.toURI().toString()
-			action.addAndroidRepositories( config )
+			configurator.addAndroidRepositories()
 		expect:
 			test.repositories
 				.findAll { it instanceof MavenArtifactRepository }
@@ -101,14 +101,14 @@ class RoboSpockActionSpecification extends Specification {
 	Project test
 	Project android
 	RoboSpockConfiguration config
-	RoboSpockAction action
+	RoboSpockConfigurator configurator
 
 	def setup() {
 		root = ProjectBuilder.builder().build()
 		test = testProject()
 		test.apply plugin: 'groovy'
 		config = new RoboSpockConfiguration( test )
-		action = new RoboSpockAction()
+		configurator = new RoboSpockConfigurator( config )
 	}
 
 	def setupAndroid() {
