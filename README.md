@@ -35,6 +35,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
+		classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
   		classpath 'se.centril.robospock:gradle-plugin-robospock:0.3.1'
   	}
 }
@@ -54,6 +55,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
+		classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
   		classpath 'se.centril.robospock:gradle-plugin-robospock:0.3.1'
   	}
 }
