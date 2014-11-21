@@ -242,11 +242,11 @@ class RoboSpockConfiguration {
 	//================================================================================
 
 	protected void setAfterConfigured( List<Closure> l ) {
-		this.roboospockTask = t
+		this.afterConfigured = l
 	}
 
-	protected void setRoboospockTask( Task t ) {
-		this.roboospockTask = t
+	protected void setRobospockTask( Task t ) {
+		this.robospockTask = t
 	}
 
 	protected void setPerspective( Project p ) {
