@@ -300,61 +300,6 @@ class RoboSpockConfiguration {
 					this.android.path == tryPath( it.path ) && notAndroid( it )
 				}
 			}
-
-			// Third, pray that the user has {android}/src/test/* directory.
-			if ( !aspirant ) {
-				aspirant = createTesterProject()
-			}
-		}
-
-		return aspirant
-	}
-
-	/**
-	 * Creates a new tester project dynamically
-	 * and configures to behave correctly.
-	 *
-	 * The directory used for source files is mostly:
-	 *  {android}/src/test/ or {android}/src/unit-test
-	 * if the first one was occupied by androidTest.
-	 *
-	 * @return the created tester project.
-	 */
-	private Project createTesterProject() {
-		File srcDir = mainSourceDir().parentFile
-		File testDir = new File( srcDir, 'test' )
-		File androidTestDir = sourceDir( this.android.android.sourceSets.androidTest )
-
-		if ( testDir == androidTestDir ) {
-			// Houston, we have a problem! androidTest uses 'test' dir.
-			// We'll be nice and try to use directory 'unit-test' instead.
-			testDir = new File( srcDir, 'unit-test' )
-		}
-
-		if ( !testDir.exists() ) {
-			return null
-		}
-
-		// Create tester project.
-		Project aspirant = new ProjectBuilder()
-				.withName( this.android.name + '-test' )
-				.withParent( this.android )
-				.withProjectDir( this.android.projectDir )
-				.build();
-
-		// Move buildDir, ensure no conflict.
-		aspirant.buildDir = new File( aspirant.buildDir, 'robospock' )
-
-		// Pre apply groovy, clear main SourceSet, correct test SourceSet.
-		// Kind of ugly hack to use internal Gradle API, but source is not exposed :(
-		aspirant.apply plugin: 'groovy'
-		aspirant.sourceSets.main.allSource.@source.each {
-			it.srcDirs = []
-		}
-		aspirant.sourceSets.test.allSource.@source.each {
-			it.srcDirs = it.srcDirs.collect {
-				new File( testDir, it.name )
-			}
 		}
 
 		return aspirant
