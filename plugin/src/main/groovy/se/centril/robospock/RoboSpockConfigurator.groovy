@@ -29,7 +29,6 @@ import org.gradle.api.tasks.StopExecutionException
  * this is where all the action happens.
  *
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
- * @version 1.0
  * @since Nov, 19, 2014
  */
 class RoboSpockConfigurator {

@@ -29,7 +29,7 @@ import org.gradle.api.Project
  *
  * <pre>{@code
  * robospock {
- * 		android = ':myApp'
+ * 		android = ':app'
  * }
  * }</pre></p>
  *
@@ -37,18 +37,32 @@ import org.gradle.api.Project
  * that has the same name as the test project but with<br/>
  * ~/[^a-zA-Z0-9]?test$/ removed then the requirement doesn't<br/>
  * apply as the project is found automatically.<br/>
- * An example: test project is named: myapp-test,<br/>
- * while android app is named myapp</p>
+ * An example: test project is named: app-test,<br/>
+ * while android app is named app</p>
+ *
+ * It is also possible to apply the plugin on an android project
+ * and instead specify the tester project like so:
+ *
+ * <pre>{@code
+ * robospock {
+ * 		tester = ':app-test'
+ * }
+ * }</pre></p>
+ *
+ * If you have a project named test as a child or **`app-test`**
+ * as a child or a sibling of the android project, it will be automatically
+ * found and used. This can rid you of the need for a `build.gradle`
+ * file for the tester project altogether.
  *
  * <p>A more extensive configuration:
  *
  * <pre>{@code
  * robospock {
- *		android          = ':myApp'<br/>
+ *		android          = project( ':app' )<br/>
  *		buildType        = 'debug'
  *		spockVersion     = '0.7-groovy-2.0'
  *	    groovyVersion    = '2.3.6'
- *		cglibVersion      = '3.1'
+ *		cglibVersion     = '3.1'
  *		objenesisVersion = '2.1'
  * }
  * }</pre></p>
@@ -60,7 +74,9 @@ import org.gradle.api.Project
  * @see RoboSpockConfiguration#groovyVersion
  * @see RoboSpockConfiguration#cglibVersion
  * @see RoboSpockConfiguration#objenesisVersion
- * @version 0.1
+ * @see RoboSpockConfiguration#perspective
+ * @see RoboSpockConfiguration#afterConfigured
+ * @see RoboSpockConfiguration#robospockTask
  * @since 2014-10-01
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
  */
