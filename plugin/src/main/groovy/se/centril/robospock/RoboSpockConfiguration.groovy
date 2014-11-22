@@ -15,18 +15,14 @@
  */
 
 package se.centril.robospock
-
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.testfixtures.ProjectBuilder
 
 import java.util.regex.Pattern
 
 import static se.centril.robospock.RoboSpockConfiguration.isAndroid
 import static se.centril.robospock.RoboSpockConfiguration.tryPath
-
 /**
  * {@link RoboSpockConfiguration} determines how
  * the {@link RoboSpockPlugin} should be used.
@@ -215,7 +211,7 @@ class RoboSpockConfiguration {
 	 * @return android-sdk directory.
 	 */
 	public File sdkDir() {
-		getAndroid().android.sdkDirectory
+		this.android.android.sdkDirectory
 	}
 
 	/**
@@ -224,7 +220,8 @@ class RoboSpockConfiguration {
 	 * @return the source dir as a {@link java.io.File}
 	 */
 	public File mainSourceDir() {
-		return sourceDir( this.android.android.sourceSets.main )
+		def ass = this.android.android.sourceSets.main
+		return ass.java.srcDirs.find().parentFile
 	}
 
 	/**
@@ -306,16 +303,6 @@ class RoboSpockConfiguration {
 	}
 
 	/**
-	 * Finds the first source dir for a sourceSet
-	 *
-	 * @param ass {@link AndroidSourceSet}.
-	 * @return the directory as a {@link java.io.File}.
-	 */
-	private File sourceDir( ass ) {
-		ass.java.srcDirs.find().parentFile
-	}
-
-	/**
 	 * Finds an android project that is either the parent of {@link #tester}
 	 * or has a similar path/name as {@link #tester}
 	 *
@@ -323,18 +310,20 @@ class RoboSpockConfiguration {
 	 */
 	private Project findAndroidProject() {
 		// Parent == android? Found it!
-		Project aspirant = this.tester.parent
-		if ( aspirant != null && !isAndroid( aspirant ) ) {
+		Project parent = this.tester.parent
+		if ( parent != null && !isAndroid( parent ) ) {
 			// Look in siblings.
 			def tryPath = tryPath( this.tester.path )
 			if ( tryPath.length() < this.tester.path.length() ) {
-				aspirant = aspirant.childProjects.values().find {
+				return parent.childProjects.values().find {
 					it.path == tryPath && isAndroid( it )
 				}
+			} else {
+				return null
 			}
 		}
 
-		return aspirant
+		return parent
 	}
 
 	/**

@@ -19,6 +19,7 @@ package se.centril.robospock
 import com.android.SdkConstants
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -26,19 +27,80 @@ import spock.lang.Specification
  * Tests {@link RoboSpockConfiguration}
  *
  * @author Centril < twingoow @ gmail.com >  / Mazdak Farrokhzad.
- * @version 1.0
  * @since Oct , 02, 2014
  */
 class RoboSpockConfigurationSpecification extends Specification {
-	def "isAndroid"() {
+	def "setAfterConfigured"() {
 		given:
-			def t = testProject()
-			def a = androidProject()
-			def l = androidLibraryProject()
+			def closures = [{ 1 }]
+			setupDefault()
+			config.setAfterConfigured( closures )
 		expect:
-			RoboSpockConfiguration.isAndroid( a )
-			RoboSpockConfiguration.isAndroid( l )
-			!RoboSpockConfiguration.isAndroid( t )
+			config.afterConfigured.equals( closures )
+	}
+
+	def "afterConfigured"() {
+		given:
+			def a = 1
+			setupDefault()
+			def r = config.afterConfigured { ++a }
+			config.executeAfterConfigured()
+		expect:
+			a == 2
+			r == config
+	}
+
+	def "setRobospockTask"() {
+		given:
+			setupDefault()
+			Task t = root.tasks.create( "task" )
+			config.setRobospockTask( t )
+		expect:
+			config.robospockTask == t
+	}
+
+	def "setPerspective"() {
+		given:
+			setupDefault()
+			config.setPerspective( root )
+		expect:
+			config.perspective == root
+	}
+
+	def "getVariants"() {
+		given:
+			setupDefault()
+			def lib = androidLibraryProject()
+			def config2 = new RoboSpockConfiguration( lib )
+		expect:
+			config.getVariants() == android.android.applicationVariants
+			config2.getVariants() == lib.android.libraryVariants
+	}
+
+	def "sdkDir"() {
+		given:
+			setupDefault()
+		expect:
+			config.sdkDir() == android.android.sdkDirectory
+	}
+
+	def "mainSourceDir"() {
+		given:
+			setupDefault()
+		expect:
+			config.mainSourceDir() == new File( android.projectDir, 'src/main' );
+	}
+
+	def "isAndroid"() {
+		expect:
+			RoboSpockConfiguration.isAndroid( project ) == expect
+		where:
+			expect || project
+			false  || testProject()
+			true   || androidProject()
+			true   || androidProject( true )
+			true   || androidLibraryProject()
+			true   || androidLibraryProject( true )
 	}
 
 	def "tryPath"() {
@@ -55,38 +117,34 @@ class RoboSpockConfigurationSpecification extends Specification {
 
 	def "findAndroidProject"() {
 		given:
-			def a1 = androidProject()
-			def t1 = testProject( 'app-test', a1 )
-			def c1 = new RoboSpockConfiguration( t1 )
-			def a2 = androidProject()
-			def t2 = testProject( 'app-test' )
-			def c2 = new RoboSpockConfiguration( t2 )
-			def t3 = testProject( '', null )
-			def c3 = new RoboSpockConfiguration( t3 )
+			def a = androidProject()
+			def cases = [
+				[testProject( 'app-test', a ), a],
+				[testProject( 'app-test' ), a],
+				[testProject( 'wrong-test' ), null],
+				[testProject( 'x', null ), null],
+				[testProject( 'x' ), null]
+			]
 		expect:
-			c1.findAndroidProject() == a1
-			c2.findAndroidProject() == a2
-			c3.findAndroidProject() == null
+			cases.each {
+				assert new RoboSpockConfiguration( it[0] ).findAndroidProject() == it[1]
+			}
 	}
 
 	def "findTesterProject"() {
 		given:
-			def a1 = androidProject( 'app1')
-			def t1 = testProject( 'app1-test', a1 )
-			def c1 = new RoboSpockConfiguration( a1 )
-			def a2 = androidProject( 'app2' )
-			def t2 = testProject( 'test', a2 )
-			def c2 = new RoboSpockConfiguration( a2 )
-			def a3 = androidProject( 'app3' )
-			def t3 = testProject( 'app3-test' )
-			def c3 = new RoboSpockConfiguration( a3 )
-			def a4 = androidProject( 'app4' )
-			def c4 = new RoboSpockConfiguration( a4 )
+			def a1 = androidProject( false, 'app1' )
+			def a2 = androidProject( false, 'app2' )
+			def cases = [
+				[a1, testProject( 'app1-test', a1 )],
+				[a2, testProject( 'test', a2 )],
+				[androidProject( false, 'app3' ), testProject( 'app3-test' )],
+				[androidProject( false, 'app4' ), null]
+			]
 		expect:
-			c1.findTesterProject() == t1
-			c2.findTesterProject() == t2
-			c3.findTesterProject() == t3
-			c4.findTesterProject() == null
+			cases.each {
+				assert new RoboSpockConfiguration( it[0] ).findTesterProject() == it[1]
+			}
 	}
 
 	def "verifyBuildType"() {
@@ -109,26 +167,14 @@ class RoboSpockConfigurationSpecification extends Specification {
 
 	def "setTester(Project)"() {
 		given:
-			def t = testProject()
-			def c = new RoboSpockConfiguration( t )
 			def a = androidProject()
-		when:
-			c.setTester( a )
-		then:
-			thrown( GradleException )
-		when:
-			c.setTester( t )
-		then:
-			notThrown( GradleException )
-			c.getTester() == t
-	}
-
-	def "setTester(String)"() {
-		given:
-			def t = testProject()
-			def a = androidProject()
+			def t = testProject( 'x' )
 			def c = new RoboSpockConfiguration( a )
 		when:
+			println c.getTester()
+		then:
+			thrown( GradleException )
+		when:
 			c.setTester( a )
 		then:
 			thrown( GradleException )
@@ -137,13 +183,22 @@ class RoboSpockConfigurationSpecification extends Specification {
 		then:
 			notThrown( GradleException )
 			c.getTester() == t
+		when:
+			c.setTester( t )
+			c.getTester()
+		then:
+			notThrown( GradleException )
 	}
 
 	def "setAndroid(Project)"() {
 		given:
-			def t = testProject()
-			def c = new RoboSpockConfiguration( t )
+			def t = testProject( 'x' )
 			def a = androidProject()
+			def c = new RoboSpockConfiguration( t )
+		when:
+			c.getAndroid()
+		then:
+			thrown( GradleException )
 		when:
 			c.setAndroid( t )
 		then:
@@ -153,22 +208,11 @@ class RoboSpockConfigurationSpecification extends Specification {
 		then:
 			notThrown( GradleException )
 			c.getAndroid() == a
-	}
-
-	def "setAndroid(String)"() {
-		given:
-			def t = testProject()
-			def c = new RoboSpockConfiguration( t )
-			def a = androidProject()
-		when:
-			c.setAndroid( t )
-		then:
-			thrown( GradleException )
 		when:
 			c.setAndroid( a )
+			c.getAndroid()
 		then:
 			notThrown( GradleException )
-			c.getAndroid() == a
 	}
 
 	static final ANDROID_PLUGIN_PATH = 'com.android.tools.build:gradle:+'
@@ -179,13 +223,12 @@ class RoboSpockConfigurationSpecification extends Specification {
 	RoboSpockConfiguration config
 
 	def setup() {
-		root = ProjectBuilder.builder().build()
+		root = ProjectBuilder.builder().withName( 'root' ).build()
 	}
 
-	def setupAndroid() {
+	def setupDefault() {
 		android = androidProject()
-		config.android = android
-		return android
+		config = new RoboSpockConfiguration( android )
 	}
 
 	Project testProject( String name = 'app-test', Project parent = root ) {
@@ -193,12 +236,12 @@ class RoboSpockConfigurationSpecification extends Specification {
 		return proj
 	}
 
-	Project androidProject( String name = 'app', Project parent = root ) {
-		return androidProjectCommon( parent, name, 'android' )
+	Project androidProject( boolean legacy = false, String name = 'app', Project parent = root ) {
+		return androidProjectCommon( parent, name, legacy ? 'android' : 'com.android.application' )
 	}
 
-	Project androidLibraryProject( String name = 'app-lib', Project parent = root ) {
-		return androidProjectCommon( parent, name, 'android-library' )
+	Project androidLibraryProject( boolean legacy = false, String name = 'app-lib', Project parent = root ) {
+		return androidProjectCommon( parent, name, legacy ? 'android-library' : 'com.android.library' )
 	}
 
 	Project androidProjectCommon( Project parent, String name, String plugin ) {
