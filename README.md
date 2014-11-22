@@ -24,10 +24,8 @@ And all of this happens using **[roboelectric]** which avoids the hassle and lat
 
 ## Usage
 
-### Applying from a tester project
-
-Given an android project with the path **`:app`**, and a test project with the
-path **`:test`**, we can apply the plugin on **`:app`** with:
+**Note:** Since 1.0.0, the plugin requires [gradle 2.2][gradle].
+To use the plugin you must must load it into the buildscript like so:
 
 ```groovy
 buildscript {
@@ -36,10 +34,17 @@ buildscript {
 	}
 	dependencies {
 		classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
-  		classpath 'se.centril.robospock:gradle-plugin-robospock:0.3.2'
+  		classpath 'se.centril.robospock:gradle-plugin-robospock:1.0.0'
   	}
 }
+```
 
+### Applying from a tester project
+
+Given an android project with the path **`:app`**, and a test project with the
+path **`:test`**, we can apply the plugin on **`:app`** with:
+
+```groovy
 apply plugin: 'robospock'
 
 robospock {
@@ -50,15 +55,6 @@ robospock {
 If your test project is named **`app-test`**, i.e the same as the application or library but with the suffix `-test` (to be exact, the regex: `/[^a-zA-Z0-9]?test/`), and if the app is the parent of the test project or is a sibling of it, then you may simply omit specifying the `robospock.android` part alltogether as it is automatically configured. Then it becomes:
 
 ```groovy
-buildscript {
-	repositories {
-		jcenter()
-	}
-	dependencies {
-		classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
-  		classpath 'se.centril.robospock:gradle-plugin-robospock:0.3.2'
-  	}
-}
 apply plugin: 'robospock'
 ```
 
@@ -66,16 +62,16 @@ When you have done this, you can use the **`test`** task as usual, or **`robospo
 
 ### Applying from an android project (Since 0.2.0)
 
-It is also possible to apply the plugin from an android project.
+It is also possible to apply the plugin from an android project like so:
 
-If you place your testing files in **`{android-root}/src/test`** then you don't even have to create a tester project, it will be made automatically for you.
-
-Due to restrictions in gradle, if you want to specify what the tester project is, you must do so in a project property before the plugin is applied like so:
 ```groovy
-project.ext.robospockTester = project( ':<path_to_tester_project>' )
+apply plugin: 'robospock'
+robospock {
+	tester = project( ':app-test' )
+}
 ```
 
-Other than that, the procedure is the exact same as before. If you have a project named **`test`** as a child or **`app-test`** as a child or a sibling of the android project, it will be automatically found and used. This can rid you of the need for a `build.gradle` file for the tester project altogether.
+If you have a project named **`test`** as a child or **`app-test`** as a child or a sibling of the android project, it will be automatically found and used. This can rid you of the need for a `build.gradle` file for the tester project altogether.
 
 ### Advanced options
 
@@ -135,7 +131,6 @@ By default, the plugin adds the much used optional spock-dependencies **`objenes
 ## Known Issues
 
 + IntelliJ & Android Studio:s gradle plugin might trigger the error: `project ':x' is not an android project`. It should however work with running the tests via gradle manually. This is a bug in IntelliJ. See [issue #5].
-+ If using the mechanism whereby you put test cases in **`{android-root}/src/test`**, then IntelliJ:s Gradle Sync will fail with: `Error:Cannot increment beyond the total of: 2` - this is a bug on the side of IntelliJ. See [issue #5].
 
 ## Changelog
 

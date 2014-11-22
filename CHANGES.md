@@ -1,6 +1,14 @@
 CHANGELOG
 =====================
 
+1.0.0
+---------------------
++ **NOTE:** This is the first major release, API won't change from now on
+until the next major release.
++ **BREAKING:** Plugin now requires Gradle >= 2.2.
++ **BREAKING:** It is unfortunately no longer supported to automatically generate a tester project. Gradle doesn't support dynamic project creation.
++ **BREAKING:** Reading of `project.ext.robospockTester` removed. The plugin now always does its work in `afterEvaluate` and setting the tester project when applying the plugin on an android project via `robospock { tester = project(':app') }` now works.
+
 0.3.2
 ---------------------
 + **DOCUMENTATION:** [README](README.md) now correctly specifies how to use the plugin. the android-sdk-manager plugin must be applied as well.
