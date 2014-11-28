@@ -268,7 +268,7 @@ class RoboSpockConfigurator {
 	 * Returns all sub projects to the android project.
 	 *
 	 * @param project the {@link org.gradle.api.Project}.
-	 * @param  configuration the configuration to look in for sub projects, default = compile.
+	 * @param configuration the configuration to look in for sub projects, default = compile.
 	 * @return the sub{@link org.gradle.api.Project}s.
 	 */
 	def List<Project> getSubprojects( Project project, configuration = 'compile' ) {
