@@ -268,29 +268,26 @@ class RoboSpockConfigurator {
 	 * Returns all sub projects to the android project.
 	 *
 	 * @param project the {@link org.gradle.api.Project}.
+	 * @param  configuration the configuration to look in for sub projects, default = compile.
 	 * @return the sub{@link org.gradle.api.Project}s.
 	 */
-	def List<Project> getSubprojects( Project project ) {
-		def projects = []
-		extractSubprojects( project, projects )
-		return projects
-	}
+	def List<Project> getSubprojects( Project project, configuration = 'compile' ) {
+		def all = []
 
-	/**
-	 * Recursively extracts all dependency-subprojects from project.
-	 *
-	 * @param libraryProject the library {@link Project} to search in.
-	 * @param projects the list of {@link Project}s to add to.
-	 * @return the sub{@link Project}s.
-	 */
-	def extractSubprojects( Project libraryProject, List<Project> projects ) {
-		Configuration compile = libraryProject.configurations.all.find { it.name == 'compile' }
-
-		def projDeps = compile.allDependencies
+		Queue queue = new ArrayDeque()
+		queue.add( project )
+		Project curr
+		while ( (curr = queue.poll()) != null ) {
+			curr.configurations.all.find { it.name == configuration }
+				.allDependencies
 				.findAll { it instanceof ProjectDependency }
-				.collect { ((ProjectDependency) it).dependencyProject }
+				.each {
+					def dep = ((ProjectDependency) it).dependencyProject
+					queue << dep
+					all << dep
+				}
+		}
 
-		projDeps.each { extractSubprojects( it, projects ) }
-		projects.addAll( projDeps )
+		return all
 	}
 }
