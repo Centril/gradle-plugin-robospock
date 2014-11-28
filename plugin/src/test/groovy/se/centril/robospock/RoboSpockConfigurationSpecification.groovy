@@ -17,10 +17,12 @@
 package se.centril.robospock
 
 import com.android.SdkConstants
+
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
+
 import spock.lang.Specification
 
 /**
@@ -67,14 +69,40 @@ class RoboSpockConfigurationSpecification extends Specification {
 			config.perspective == root
 	}
 
+	class BuildType {
+		String name
+	}
+
+	class Variant {
+		BuildType buildType
+		String name
+	}
+
 	def "getVariants"() {
-		given:
+		given: "app, lib and respective configs"
 			setupDefault()
 			def lib = androidLibraryProject()
 			def config2 = new RoboSpockConfiguration( lib )
-		expect:
-			config.getVariants() == android.android.applicationVariants
-			config2.getVariants() == lib.android.libraryVariants
+			config2.buildTypes << 'release'
+
+		and: "the variants: debug, release, staging"
+			def variants = ['debug', 'release', 'staging'].collectEntries {
+				[(it): [name: it, buildType: [name: it] as BuildType] as Variant]
+			}
+			android.android.applicationVariants << variants.debug
+			variants.each {
+				lib.android.libraryVariants << it.value
+			}
+
+		and: "the variants for each returned"
+			def (v1, v2) = [config, config2]*.getVariants().collect { it.name }
+
+		expect: "the variants to be there"
+			'debug' in v1
+			v1.size() == 1
+			'debug' in v2
+			'release' in v2
+			v2.size() == 2
 	}
 
 	def "sdkDir"() {
@@ -147,20 +175,20 @@ class RoboSpockConfigurationSpecification extends Specification {
 			}
 	}
 
-	def "verifyBuildType"() {
+	def "verifyBuildTypes"() {
 		given:
 			def t = testProject()
 			def c1 = new RoboSpockConfiguration( t )
 			def c2 = new RoboSpockConfiguration( t )
-			c2.buildType = 'lolcats'
+			c2.buildTypes << 'lolcats'
 			c1.android = androidProject()
 			c2.android = c1.android
 		when:
-			c1.verifyBuildType()
+			c1.verifyBuildTypes()
 		then:
 			notThrown( GradleException )
 		when:
-			c2.verifyBuildType()
+			c2.verifyBuildTypes()
 		then:
 			thrown( GradleException )
 	}

@@ -183,7 +183,7 @@ class RoboSpockConfigurator {
 					}
 				}
 
-				// Library: Copy intermediates/bundles/{buildType}/res/ -> intermediates/res/{buildType}/
+				// Library: Copy intermediates/bundles/{variant.dirName}/res/ -> intermediates/res/{variant.dirName}/
 				cfg.android.copy {
 					from( "${cfg.android.buildDir}/intermediates/bundles/${variant.dirName}/res/" )
 					into( "${cfg.android.buildDir}/intermediates/res/${variant.dirName}/" )
@@ -236,9 +236,14 @@ class RoboSpockConfigurator {
 	def copyAndroidDependencies() {
 		def tester = cfg.tester
 		def android = cfg.android
-		def projDep = getSubprojects( android ) + android
 
-		def zip2jarDependsTask = "compile${cfg.buildType.capitalize()}Java"
+		// Filter out all variants for excluded build types.
+		def variants = cfg.variants
+
+		def projDep = getSubprojects( android ) + android
+		def buildType = cfg.buildTypes[0]
+
+		def zip2jarDependsTask = "compile${buildType.capitalize()}Java"
 
 		// Filter out duplicates due to project dependencies
 		projDep.unique().each { proj ->
@@ -249,7 +254,7 @@ class RoboSpockConfigurator {
 			Task zip2jar = proj.tasks.create( name: ZIP_2_JAR_TASK, type: Zip ) {
 				dependsOn zip2jarDependsTask
 				description ZIP_2_JAR_DESCRIPTION
-				from new File( android.buildDir, "intermediates/classes/${cfg.buildType}" )
+				from new File( android.buildDir, "intermediates/classes/${buildType}" )
 				destinationDir = libsPath
 				extension = "jar"
 			}

@@ -112,6 +112,6 @@ class RoboSpockTest extends Test {
 	 * @return the {@link java.io.File}
 	 */
 	def File buildPath( proj, pre, post ) {
-		return new File( proj.buildDir, "intermediates/${pre}/${config.buildType}/${post}" )
+		return new File( proj.buildDir, "intermediates/${pre}/${config.buildTypes[0]}/${post}" )
 	}
 }

@@ -59,7 +59,7 @@ import org.gradle.api.Project
  * <pre>{@code
  * robospock {
  *		android          = project( ':app' )<br/>
- *		buildType        = 'debug'
+ *		buildType        << 'release'
  *		spockVersion     = '0.7-groovy-2.0'
  *	    groovyVersion    = '2.3.6'
  *		cglibVersion     = '3.1'

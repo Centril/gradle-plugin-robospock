@@ -15,6 +15,7 @@
  */
 
 package se.centril.robospock
+
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -49,11 +50,10 @@ class RoboSpockConfiguration {
 	Project tester
 
 	/**
-	 * (Optional) The buildType being tested.
-	 * Default = 'debug'
-	 * @
+	 * (Optional) The buildTypes being tested.
+	 * Default = ['debug']
 	 */
-	String buildType        = 'debug'
+	List<String> buildTypes	= ['debug']
 
 	/**
 	 * (Optional) The robospock version to use.
@@ -200,7 +200,7 @@ class RoboSpockConfiguration {
 	 */
 	public void verify() {
 		this.getAndroid()
-		this.verifyBuildType()
+		this.verifyBuildTypes()
 
 		this.getTester()
 	}
@@ -225,13 +225,16 @@ class RoboSpockConfiguration {
 	}
 
 	/**
-	 * Returns the android variants applicable for the android project.
+	 * Returns the variants of the android project excluding those
+	 * that that are not in our {@link #buildTypes}.
 	 *
 	 * @return the variants.
 	 */
 	public def getVariants() {
 		def android = this.android.android
-		return isLibrary( this.android ) ? android.libraryVariants : android.applicationVariants
+		def v = isLibrary( this.android ) ? android.libraryVariants : android.applicationVariants
+		v = v.collect().findAll { it.buildType.name in this.buildTypes }
+		return v
 	}
 
 	//================================================================================
@@ -265,12 +268,14 @@ class RoboSpockConfiguration {
 	private static final Pattern PROJECT_SUFFIX_REMOVE = ~/[^a-zA-Z0-9]?test$/
 
 	/**
-	 * Verify that the buildType exists.
+	 * Verify that all the buildTypes exists.
 	 */
-	private void verifyBuildType() {
-		// Verify that the buildType specified exists.
-		if ( !this.android.android.buildTypes.find { it.name == buildType } ) {
-			throw new GradleException( "Specified buildType: " + buildType + ' does not exist.' )
+	private void verifyBuildTypes() {
+		// Verify that the buildTypes specified all exist.
+		buildTypes.each { type ->
+			if ( !this.android.android.buildTypes.find { it.name == type } ) {
+				throw new GradleException( "Specified buildType: " + type + ' does not exist.' )
+			}
 		}
 	}
 
