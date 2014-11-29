@@ -28,10 +28,10 @@ import spock.lang.Specification
 /**
  * Tests {@link RoboSpockConfiguration}
  *
- * @author Centril < twingoow @ gmail.com >  / Mazdak Farrokhzad.
- * @since Oct , 02, 2014
+ * @author Centril <twingoow@gmail.com> / Mazdak Farrokhzad.
+ * @since 2014-10-02
  */
-class RoboSpockConfigurationSpecification extends Specification {
+class RoboSpockConfigurationSpecification extends RoboSpockSpecification {
 	def "setAfterConfigured"() {
 		given:
 			def closures = [{ 1 }]
@@ -117,18 +117,6 @@ class RoboSpockConfigurationSpecification extends Specification {
 			setupDefault()
 		expect:
 			config.mainSourceDir() == new File( android.projectDir, 'src/main' );
-	}
-
-	def "isAndroid"() {
-		expect:
-			RoboSpockConfiguration.isAndroid( project ) == expect
-		where:
-			expect || project
-			false  || testProject()
-			true   || androidProject()
-			true   || androidProject( true )
-			true   || androidLibraryProject()
-			true   || androidLibraryProject( true )
 	}
 
 	def "tryPath"() {
@@ -241,57 +229,5 @@ class RoboSpockConfigurationSpecification extends Specification {
 			c.getAndroid()
 		then:
 			notThrown( GradleException )
-	}
-
-	static final ANDROID_PLUGIN_PATH = 'com.android.tools.build:gradle:+'
-
-	Project root
-	Project test
-	Project android
-	RoboSpockConfiguration config
-
-	def setup() {
-		root = ProjectBuilder.builder().withName( 'root' ).build()
-	}
-
-	def setupDefault() {
-		android = androidProject()
-		config = new RoboSpockConfiguration( android )
-	}
-
-	Project testProject( String name = 'app-test', Project parent = root ) {
-		Project proj = ProjectBuilder.builder().withParent( parent ).withName( name ).build()
-		return proj
-	}
-
-	Project androidProject( boolean legacy = false, String name = 'app', Project parent = root ) {
-		return androidProjectCommon( parent, name, legacy ? 'android' : 'com.android.application' )
-	}
-
-	Project androidLibraryProject( boolean legacy = false, String name = 'app-lib', Project parent = root ) {
-		return androidProjectCommon( parent, name, legacy ? 'android-library' : 'com.android.library' )
-	}
-
-	Project androidProjectCommon( Project parent, String name, String plugin ) {
-		Project proj = ProjectBuilder.builder().withParent( parent ).withName( name ).build()
-		def file = new File( proj.rootDir, SdkConstants.FN_LOCAL_PROPERTIES );
-		file.write( "sdk.dir=/home" )
-
-		proj.buildscript {
-			repositories {
-				mavenCentral()
-			}
-			dependencies {
-				classpath ANDROID_PLUGIN_PATH
-			}
-		}
-
-		proj.repositories {
-			mavenCentral()
-		}
-
-		proj.apply plugin: plugin
-
-		return proj
 	}
 }

@@ -22,8 +22,9 @@ import org.gradle.api.Task
 
 import java.util.regex.Pattern
 
-import static se.centril.robospock.RoboSpockConfiguration.isAndroid
+import static se.centril.robospock.RoboSpockUtils.*
 import static se.centril.robospock.RoboSpockConfiguration.tryPath
+
 /**
  * {@link RoboSpockConfiguration} determines how
  * the {@link RoboSpockPlugin} should be used.
@@ -108,7 +109,7 @@ class RoboSpockConfiguration {
 	 * Constructs the configuration.
 	 *
 	 * @param proj the project to begin configuration with.
-	 * @param inverse if true, proj honors {@link #isAndroid(Project)},
+	 * @param inverse if true, proj honors {@link #RoboSpockUtils#isAndroid(Project)},
 	 *  otherwise it's assumed to be the tester.
 	 */
 	public RoboSpockConfiguration( Project proj ) {
@@ -339,35 +340,5 @@ class RoboSpockConfiguration {
 	 */
 	private static String tryPath( String path ) {
 		path - PROJECT_SUFFIX_REMOVE
-	}
-
-	/**
-	 * Checks if the provided project is an android or android-library project.
-	 *
-	 * @param project The {@link Project} to check.
-	 * @return true if it is.
-	 */
-	private static boolean isAndroid( Project project ) {
-		return isApplication( project ) || isLibrary( project )
-	}
-
-	/**
-	 * Checks if the provided project is an android application project.
-	 *
-	 * @param project The {@link Project} to check.
-	 * @return true if it is.
-	 */
-	private static boolean isApplication( Project project ) {
-		return project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('android')
-	}
-
-	/**
-	 * Checks if the provided project is an android-library project.
-	 *
-	 * @param project The {@link Project} to check.
-	 * @return true if it is.
-	 */
-	private static boolean isLibrary( Project project ) {
-		return project.plugins.hasPlugin('com.android.library') || project.plugins.hasPlugin('android-library')
 	}
 }

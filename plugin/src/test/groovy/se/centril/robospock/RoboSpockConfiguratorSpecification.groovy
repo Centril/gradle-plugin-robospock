@@ -25,19 +25,26 @@ import spock.lang.Specification
 /**
  * Tests {@link RoboSpockConfigurator}
  *
- * @author Centril <twingoow @ gmail.com> / Mazdak Farrokhzad.
- * @version 1.0
- * @since Oct, 02, 2014
+ * @author Centril <twingoow@gmail.com> / Mazdak Farrokhzad.
+ * @since 2014-10-02
  */
-class RoboSpockConfiguratorSpecification extends Specification {
+class RoboSpockConfiguratorSpecification extends RoboSpockSpecification {
+	RoboSpockConfigurator configurator
+
+	def setup() {
+		setupDefault()
+		test = testProject()
+		configurator = new RoboSpockConfigurator( config )
+	}
+
 	def "getSubprojects"() {
 		given:
-			def libA = androidLibraryProject( 'libraryA' )
-			def libB = androidLibraryProject( 'libraryB' )
+			def libA = androidLibraryProject( false, 'libraryA' )
+			def libB = androidLibraryProject( false, 'libraryB' )
 			libB.dependencies {
 				compile libA
 			}
-			setupAndroid().dependencies {
+			android.dependencies {
 				compile libB
 			}
 		expect:
@@ -72,18 +79,18 @@ class RoboSpockConfiguratorSpecification extends Specification {
 			configurator.addDependencies()
 		then:
 			test.configurations
-					.find { it.name == 'testCompile' }.allDependencies
-					.collect { "${it.group}:${it.name}:${it.version}" }
-					.containsAll( [
+				.find { it.name == 'testCompile' }.allDependencies
+				.collect { "${it.group}:${it.name}:${it.version}" }
+				.containsAll( [
 					"org.codehaus.groovy:groovy-all:${config.groovyVersion}",
 					"org.spockframework:spock-core:${config.spockVersion}",
 					"org.robospock:robospock:${config.robospockVersion}"
-			] )
+				] )
 	}
 
 	def "addAndroidRepositories"() {
 		given:
-			def sdk = setupAndroid().android.sdkDirectory.toURI().toString()
+			def sdk = android.android.sdkDirectory.toURI().toString()
 			configurator.addAndroidRepositories()
 		expect:
 			test.repositories
@@ -93,63 +100,5 @@ class RoboSpockConfiguratorSpecification extends Specification {
 					test.file( "${sdk}/extras/android/m2repository" ).toURL().toString(),
 					test.file( "${sdk}/extras/google/m2repository" ).toURL().toString()
 				] )
-	}
-
-	static final ANDROID_PLUGIN_PATH = 'com.android.tools.build:gradle:+'
-
-	Project root
-	Project test
-	Project android
-	RoboSpockConfiguration config
-	RoboSpockConfigurator configurator
-
-	def setup() {
-		root = ProjectBuilder.builder().build()
-		test = testProject()
-		test.apply plugin: 'groovy'
-		config = new RoboSpockConfiguration( test )
-		configurator = new RoboSpockConfigurator( config )
-	}
-
-	def setupAndroid() {
-		android = androidProject()
-		config.android = android
-		return android
-	}
-
-	Project testProject( String name = 'app-test', Project parent = root ) {
-		Project proj = ProjectBuilder.builder().withParent( parent ).withName( name ).build()
-		return proj
-	}
-
-	Project androidProject( String name = 'app', Project parent = root ) {
-		return androidProjectCommon( parent, name, 'android' )
-	}
-
-	Project androidLibraryProject( String name = 'app-lib', Project parent = root ) {
-		return androidProjectCommon( parent, name, 'android-library' )
-	}
-
-	Project androidProjectCommon( Project parent, String name, String plugin ) {
-		Project proj = ProjectBuilder.builder().withParent( parent ).withName( name ).build()
-		def file = new File( proj.rootDir, SdkConstants.FN_LOCAL_PROPERTIES );
-		file.write( "sdk.dir=/home" )
-
-		proj.buildscript {
-			repositories {
-				mavenCentral()
-			}
-			dependencies {
-				classpath ANDROID_PLUGIN_PATH
-			}
-		}
-
-		proj.repositories {
-			mavenCentral()
-		}
-
-		proj.apply plugin: plugin
-
-		return proj
 	}
 }
