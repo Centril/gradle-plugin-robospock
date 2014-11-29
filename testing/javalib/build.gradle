@@ -14,25 +14,6 @@
  * limitations under the License.
  */
 
-['android-sdk-manager', 'com.android.library']
-	.each { apply plugin: it }
-
-android {
-	compileSdkVersion 20
-	buildToolsVersion "20"
-
-	defaultConfig {
-		versionCode 1
-		versionName "1.0"
-		minSdkVersion 9
-		targetSdkVersion 20
-	}
-
-	lintOptions {
-		abortOnError true
-	}
-}
-
-dependencies {
-	compile project( ':testing:javalib' )
-}
+apply plugin: 'java'
+sourceCompatibility = 1.7
+targetCompatibility = 1.7

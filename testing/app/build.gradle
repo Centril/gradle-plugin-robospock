@@ -32,3 +32,8 @@ android {
 		abortOnError true
 	}
 }
+
+dependencies {
+	compile 'com.google.guava:guava:18.0'
+	compile project(':testing:lib-explicit')
+}

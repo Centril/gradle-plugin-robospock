@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.appinv">
 
     <application android:label="App" android:allowBackup="false" android:icon="@android:drawable/ic_delete">
         <activity android:name=".AppInvActivity" android:label="App">

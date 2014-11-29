@@ -23,7 +23,7 @@
     tools:context=".AppActivity" >
 
 	<ListView
-			android:id="@+id/testobject"
+			android:id="@+id/testobject_app"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"/>
 

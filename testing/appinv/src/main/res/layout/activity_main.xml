@@ -23,7 +23,7 @@
     tools:context=".AppInvActivity" >
 
 	<ListView
-			android:id="@+id/testobject"
+			android:id="@+id/testobject_appinv"
 			android:layout_width="match_parent"
 			android:layout_height="match_parent"/>
 

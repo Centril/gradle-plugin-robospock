@@ -1,9 +1,9 @@
-package com.example;
+package com.example.appinv;
 
 import android.app.Activity;
 import android.os.Bundle;
 
-public class AppActivity extends Activity {
+public class AppInvActivity extends Activity {
 	@Override
 	public void onCreate( Bundle savedInstanceState ) {
 		super.onCreate( savedInstanceState );
