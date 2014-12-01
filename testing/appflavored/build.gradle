@@ -1,0 +1,92 @@
+/*
+ * Copyright 2014 Centril / Mazdak Farrokhzad <twingoow@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+['android-sdk-manager', 'com.android.application']
+	.each { apply plugin: it }
+
+android {
+	compileSdkVersion 20
+	buildToolsVersion "20"
+
+	lintOptions {
+		abortOnError true
+	}
+
+	defaultConfig {
+		versionCode 1
+		versionName "1.0"
+		minSdkVersion 9
+		targetSdkVersion 20
+	}
+
+	flavorDimensions "abi", "version"
+
+	productFlavors {
+		free {
+			flavorDimension "version"
+		}
+		paid {
+			flavorDimension "version"
+		}
+		x86 {
+			flavorDimension "abi"
+		}
+		mips {
+			flavorDimension "abi"
+		}
+		arm {
+			flavorDimension "abi"
+		}
+	}
+}
+
+dependencies {
+	compile 'com.google.guava:guava:18.0'
+	compile project(':testing:lib-explicit')
+	armCompile 'net.engio:mbassador:1.2.0'
+}
+
+/*
+
+afterEvaluate {
+rootProject.allprojects
+	.findAll { proj ->
+		proj.plugins.hasPlugin( 'com.android.application' )
+	}
+	.each { proj ->
+		proj.android.applicationVariants.each { variant ->
+			def out = variant.javaCompile.name
+			println "${proj.name} : java : ${out}"
+		}
+
+		proj.android.sourceSets
+			.findAll {
+				return true//it.name.startsWith( 'android' )
+			}
+			.each {
+				def out = it.java.srcDirs
+				println "${proj.name} : sourceSet : ${out}"
+			}
+
+		proj.configurations.each { conf ->
+			println "    Configuration: ${conf.name}"
+			conf.allDependencies.each { dep ->
+				println "      ${dep.group}:${dep.name}:${dep.version}"
+			}
+		}
+	}
+}
+*/
