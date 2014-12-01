@@ -23,6 +23,9 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.StopExecutionException
+import org.gradle.api.plugins.JavaBasePlugin
+
+import static se.centril.robospock.RoboSpockUtils.isLibrary
 
 /**
  * {@link RoboSpockConfigurator}: Is the heart of the plugin,
@@ -32,9 +35,14 @@ import org.gradle.api.tasks.StopExecutionException
  * @since Nov, 19, 2014
  */
 class RoboSpockConfigurator {
-	public static String robospockTaskName = 'robospock'
-	public static final String ZIP_2_JAR_TASK = 'robospock_zip2jar'
-	public static final String ZIP_2_JAR_DESCRIPTION = "Zips for Robospock."
+	private static final String ROBOSPOCK_TASK_NAME_BASE = 'robospock'
+	private static final String JAR_TASK_BASE = 'robospockZip2Jar'
+	private static final String JAR_TASK_DESCRIPTION = "Zips for Robospock."
+
+	private static final String AAR_PATH = 'intermediates/exploded-aar/'
+	private static final String CLASSES_PATH = 'intermediates/classes/'
+	private static final String LIBS_PATH = 'libs'
+	private static final String JAR_EXT = 'jar'
 
 	RoboSpockConfiguration cfg
 
@@ -55,11 +63,12 @@ class RoboSpockConfigurator {
 	 * Configures everything.
 	 */
 	public void configure() {
-		def run = [cfg.&verify, this.&applyGroovy,
-		           this.&addJCenter, this.&addAndroidRepositories, this.&addDependencies,
-		           this.&fixSupportLib, this.&copyAndroidDependencies, this.&setupTestTask,
-		           this.&fixRobolectricBugs, cfg.&executeAfterConfigured]
-		run.each { it() }
+		[cfg.&verify, this.&applyGroovy, this.&addJCenter,
+		 this.&addAndroidRepositories, this.&addDependencies, this.&fixSupportLib,
+		 this.&setupTestTasks,
+		 this.&copyAndroidDependencies, this.&setupTestTask, this.&fixRobolectricBugs,
+		 cfg.&executeAfterConfigured]
+		 	.each { it() }
 	}
 
 	//================================================================================
@@ -133,19 +142,252 @@ class RoboSpockConfigurator {
 	}
 
 	/**
-	 * Sets up the test task.
+	 * Adds all the dependencies of this configuration to {@link Project}.
 	 */
-	def setupTestTask() {
-		cfg.robospockTask = cfg.tester.tasks.create( name: robospockTaskName, type: RoboSpockTest ) {
-			config = cfg
-			configure()
+	def addDependencies() {
+		def deps = [
+				"org.codehaus.groovy:groovy-all:${cfg.groovyVersion}",
+				"org.spockframework:spock-core:${cfg.spockVersion}",
+				"org.robospock:robospock:${cfg.robospockVersion}"
+		]
+
+		cfg.cglibVersion = cfg.cglibVersion.trim()
+		if ( cfg.cglibVersion ) {
+			deps << "cglib:cglib-nodep:${cfg.cglibVersion}"
 		}
 
-		// Remove all actions on test & make it basically do robospock task.
+		cfg.objenesisVersion = cfg.objenesisVersion.trim()
+		if ( cfg.objenesisVersion ) {
+			deps << "org.objenesis:objenesis:${cfg.objenesisVersion}"
+		}
+
+		deps.each { dep ->
+			cfg.tester.dependencies {
+				testCompile dep
+			}
+		}
+	}
+
+	/**
+	 * Adds the android SDK dir repositories to {@link RoboSpockConfiguration#android}.
+	 */
+	def addAndroidRepositories() {
+		def sdkDir = cfg.sdkDir()
+		cfg.tester.repositories {
+			maven { url new File( sdkDir, "extras/android/m2repository" ).toURI().toString() }
+			maven { url new File( sdkDir, "extras/google/m2repository" ).toURI().toString() }
+		}
+	}
+
+	/**
+	 * Sets up the test tasks.
+	 */
+	def setupTestTasks() {
+		this.setupSourceSets()
+
+		def tasks = cfg.tester.tasks
+
+		// Create the actual test tasks per variant.
+		cfg.variants.each { variant ->
+			cfg.robospockTask = tasks.create( name: ROBOSPOCK_TASK_NAME_BASE, type: RoboSpockTest ) {
+				config = cfg
+				variant = v
+				sourceSet = ss
+				configure()
+			}
+		}
+
+		// Create the grouped robospock task.
+		cfg.robospockTask = tasks.create(
+			name: ROBOSPOCK_TASK_NAME_BASE,
+			description: 'Runs all the unit tests using RoboSpock, for all variants.',
+			group: JavaBasePlugin.VERIFICATION_GROUP )
+
+
+
+		// Make check depend on the grouped task.
+		tasks.getByName( JavaBasePlugin.CHECK_TASK_NAME ).dependsOn( cfg.robospockTask )
+
+		// Remove all actions on test & make it basically do the grouped robospock task.
 		cfg.tester.test {
 			deleteAllActions()
 			dependsOn cfg.robospockTask
 		}
+	}
+
+	class DAG<V> {
+		Map<V, List<V>> edges = [:]
+
+		class View<V> {
+			V of
+			DAG<V> dag
+
+			def View<V> add( V from, V to ) {
+				dag.add( from, to )
+				return this
+			}
+
+			def View<V> add( V from, List<V> to ) {
+				dag.add( from, to )
+				return this
+			}
+
+			def boolean linked( V to ) {
+				return dag.linked( of, to )
+			}
+		}
+
+		def boolean excludes( V vertex ) {
+			return edges[vertex] == null
+		}
+
+		def boolean includes( V vertex ) {
+			return edges[vertex] != null
+		}
+
+		def DAG<V> add( V vertex ) {
+			addImpl( vertex )
+			return this
+		}
+
+		def DAG<V> add( V from, V to ) {
+			addImpl( to )
+			addImpl( from ) << to
+		}
+
+		def DAG<V> add( V from, List<V> to ) {
+			addImpl( to )
+			addImpl( from ) += to
+		}
+
+		def boolean linked( V from, V to ) {
+			def e = edges[vertex]
+			return e != null && e.contains( to )
+		}
+
+
+
+		private List<Edge<V>> addImpl( V vertex ) {
+			def e = edges[vertex]
+			if ( e == null ) {
+				e = edges[vertex] = []
+			}
+			return e
+		}
+	}
+
+	def setupSourceSets() {
+		// We already have a test source set, no need to make it.
+		def ss = cfg.tester.sourceSets
+		def confs = cfg.tester.configurations
+
+		def tree = { [:].withDefault{ owner.call() } }
+		def h = tree()
+		h.
+
+		// Maps from source set -> configurations.
+		def mapping = ['test': ss.test]
+
+
+		// Add a source set for each BT = build type.
+		cfg.buildTypes.each { bt ->
+			// Construct the source set.
+			def btSS = createSS( bt )
+			mapping[bt] = btSS
+
+			// Extend from test source set.
+			extendConfiguration( btSS, ss.test )
+		}
+
+		// Add a source set for each PF = product flavor.
+		if ( !isLibrary( cfg.android ) ) {
+			cfg.variants.collectMany { it.productFlavors }.unique().each { pf ->
+				// Construct the source set.
+				def pfSS = createSS( pf )
+				mapping[pf] = pfSS
+				extendConfiguration( pfSS, ss.test )
+
+				// Add a source set for each T = (PF, BT).
+				cfg.buildTypes.each { bt ->
+					// Construct the source set.
+					def name = pf.name + bt.capitalize()
+					def pfBtSS = createSS( name )
+					mapping[name] = pfBtSS
+
+					// Extend from PF and BT.
+					extendConfiguration( pfBtSS, pfSS )
+					extendConfiguration( pfBtSS, mapping[bt] )
+				}
+			}
+		}
+
+		// Add a source set for each variant.
+		cfg.variants.each { variant ->
+
+			def bt = variant.buildType.name
+			// Android plugin creates variants with same name as build types, avoid them.
+			if ( variant.name != bt ) {
+				// Construct the source set.
+				def vSS = createSS( variant )
+
+				// Either extend from the BT or every T = (PF, BT).
+				// In the latter case, since T extends BT, extending T => extending BT:
+				if ( isLibrary( cfg.android ) || variant.productFlavors.isEmpty() ) {
+					extendConfiguration( vSS, mapping[bt] )
+				} else {
+					variant.productFlavors.each { pf ->
+						extendConfiguration( vSS, mapping[pf.name + bt.capitalize()] )
+					}
+				}
+			}
+		}
+
+		println "${cfg.tester} : after"
+		cfg.tester.sourceSets.each {
+			println "${cfg.tester} : source set: ${it.name}"
+		}
+		cfg.tester.configurations.each { conf ->
+			println "    Configuration: ${conf.name}"
+			conf.allDependencies.each { dep ->
+				println "      ${dep.group}:${dep.name}:${dep.version}"
+			}
+		}
+	}
+
+	def extendConfiguration( ss, baseSS ) {
+		def confs = cfg.tester.configurations
+		def baseCompile = confs[baseSS.compileConfigurationName]
+		def baseRT = confs[baseSS.runtimeConfigurationName]
+		def compile = confs[ss.compileConfigurationName].extendsFrom( baseCompile )
+		confs[ss.runtimeConfigurationName].extendsFrom( compile, baseRT )
+	}
+
+	def createSS( ssName ) {
+		// Normalize name & Create or bail.
+		ssName = name instanceof String ? name : name.name
+		ssName = 'test' + name.capitalize()
+		def sets = cfg.tester.sourceSets
+		def ss = sets.findByName( ssName )
+		if ( ss == null ) {
+			// Set source dirs for these languages and some optional ones.
+			ss = sets.create( ssName )
+			['java', 'groovy', 'resources'].each {
+				lang -> ssLang( ss, lang )
+			}
+			['scala', 'kotlin'].each {
+				lang -> ssLang( ss, lang, true )
+			}
+		}
+
+		return ss
+	}
+
+	def ssLang( ss, lang, check = false ) {
+		if ( check && !cfg.tester.plugins.hasPlugin( lang ) ) {
+			return
+		}
+
+		ss.java.srcDir cfg.tester.file( "src/${ss.name}/$lang" )
 	}
 
 	/**
@@ -193,84 +435,52 @@ class RoboSpockConfigurator {
 	}
 
 	/**
-	 * Adds all the dependencies of this configuration to {@link Project}.
-	 */
-	def addDependencies() {
-		def deps = [
-				"org.codehaus.groovy:groovy-all:${cfg.groovyVersion}",
-				"org.spockframework:spock-core:${cfg.spockVersion}",
-				"org.robospock:robospock:${cfg.robospockVersion}"
-		]
-
-		cfg.cglibVersion = cfg.cglibVersion.trim()
-		if ( cfg.cglibVersion ) {
-			deps << "cglib:cglib-nodep:${cfg.cglibVersion}"
-		}
-
-		cfg.objenesisVersion = cfg.objenesisVersion.trim()
-		if ( cfg.objenesisVersion ) {
-			deps << "org.objenesis:objenesis:${cfg.objenesisVersion}"
-		}
-
-		deps.each { dep ->
-			cfg.tester.dependencies {
-				testCompile dep
-			}
-		}
-	}
-
-	/**
-	 * Adds the android SDK dir repositories to {@link RoboSpockConfiguration#android}.
-	 */
-	def addAndroidRepositories() {
-		def sdkDir = cfg.sdkDir()
-		cfg.tester.repositories {
-			maven { url new File( sdkDir, "extras/android/m2repository" ).toURI().toString() }
-			maven { url new File( sdkDir, "extras/google/m2repository" ).toURI().toString() }
-		}
-	}
-
-	/**
 	 * Copies the android project dependencies to this project.
 	 */
 	def copyAndroidDependencies() {
 		def tester = cfg.tester
 		def android = cfg.android
 
-		// Filter out all variants for excluded build types.
-		def variants = cfg.variants
+		def aarPath = new File( android.buildDir, AAR_PATH )
 
-		def projDep = getSubprojects( android ) + android
-		def buildType = cfg.buildTypes[0]
-
-		def zip2jarDependsTask = "compile${buildType.capitalize()}Java"
-
-		// Filter out duplicates due to project dependencies
-		projDep.unique().each { proj ->
-			def libsPath = new File( android.buildDir, 'libs' )
-			def aarPath = new File( android.buildDir, 'intermediates/exploded-aar/' )
-
-			// Create zip2jar task & make compileJava depend on it.
-			Task zip2jar = proj.tasks.create( name: ZIP_2_JAR_TASK, type: Zip ) {
-				dependsOn zip2jarDependsTask
-				description ZIP_2_JAR_DESCRIPTION
-				from new File( android.buildDir, "intermediates/classes/${buildType}" )
+		// Doing this for every variant!
+		cfg.variants.each { variant ->
+			// First zipify the android project iself:
+			// Create zip2jar task if not present & make compileJava depend on it.
+			def libsPath = new File( android.buildDir, LIBS_PATH )
+			Task jarTask = android.tasks.create( name: jarTaskName( variant ), type: Zip ) {
+				dependsOn variant.javaCompile
+				description JAR_TASK_DESCRIPTION
+				from new File( android.buildDir, CLASSES_PATH + variant.dirName )
 				destinationDir = libsPath
-				extension = "jar"
+				extension = JAR_EXT
 			}
-			tester.tasks.compileTestJava.dependsOn( zip2jar )
+			tester.tasks.compileTestJava.dependsOn( jarTask )
 
-			// Add all jars frm zip2jar + exploded-aar:s to dependencies.
+			// Add dependencies.
 			tester.dependencies {
-				testCompile tester.fileTree( dir: libsPath, include: "*.jar" )
-				testCompile tester.fileTree( dir: aarPath, include: ['*/*/*/*.jar'] )
-				testCompile tester.fileTree( dir: aarPath, include: ['*/*/*/*/*.jar'] )
+				testCompile tester.fileTree( dir: libsPath, include: '*.' + JAR_EXT )
+				// This handles android libraries via exploded-aars:
+				testCompile tester.fileTree( dir: aarPath, include: ['*/*/*/*.' + JAR_EXT] )
+				testCompile tester.fileTree( dir: aarPath, include: ['*/*/*/*/*.' + JAR_EXT] )
+			}
+
+			// Add all project dependencies as dependencies for tester.
+			getSubprojects( android ).findAll { !isLibrary( it ) }.each { proj ->
+				tester.dependencies {
+					testCompile proj
+				}
 			}
 		}
 	}
 
+	private String jarTaskName( variant ) {
+		return JAR_TASK_BASE + '_' + variant.name
+	}
+
 	/**
-	 * Returns all sub projects to the android project.
+	 * Returns a set of all the decendant projects to the android project.
+	 * They are decendants in the sense that they are project dependencies.
 	 *
 	 * @param project the {@link org.gradle.api.Project}.
 	 * @param configuration the configuration to look in for sub projects, default = compile.
@@ -293,6 +503,7 @@ class RoboSpockConfigurator {
 				}
 		}
 
-		return all
+		// Filter out duplicates due to project dependencies
+		return all.unique()
 	}
 }

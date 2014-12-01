@@ -33,6 +33,9 @@ class RoboSpockTest extends Test {
 	 */
 	RoboSpockConfiguration config
 
+	def variant
+	def sourceSet
+
 	/**
 	 * Configures RoboSpock test additions.
 	 * Running is not optional to make the tests work.
@@ -40,8 +43,9 @@ class RoboSpockTest extends Test {
 	 * @param  cfg the configuration object to use.
 	 */
 	public void configure() {
-		// Make check depend on this task.
-		config.tester.tasks.getByName( JavaBasePlugin.CHECK_TASK_NAME ).dependsOn( this )
+		// Setup classpath.
+	    testClassesDir = sourceSet.output.classesDir
+	    classpath = sourceSet.runtimeClasspath
 
 		/*
 		 * Naming:

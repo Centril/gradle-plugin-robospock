@@ -98,7 +98,13 @@ class RoboSpockConfiguration {
 	 * Read Only robospock testing task, can only be read from
 	 * in {@link #afterConfigured(groovy.lang.Closure)}.
 	 */
-	Task robospockTask
+	Task robospock
+
+	/**
+	 * (Read Only) robospock testing variant tasks, can only be
+	 * read from in {@link #afterConfigured(groovy.lang.Closure)}.
+	 */
+	List<RoboSpockTestVariant> variants
 
 	/**
 	 * The perspective (of a project) from which things are applied.
