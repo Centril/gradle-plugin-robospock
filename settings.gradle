@@ -18,5 +18,6 @@ include 'plugin'
 project(':plugin').name = rootProject.name = 'gradle-plugin-robospock'
 
 include ':testing:app', ':testing:app-test'
-include ':testing:lib-explicit', ':testing:lib-explicit-test'
+include ':testing:lib-explicit', ':testing:lib-explicit-test', ':testing:javalib'
 include ':testing:appinv', ':testing:appinv:appinv-test'
+include ':testing:appflavored', ':testing:appflavored-test'
