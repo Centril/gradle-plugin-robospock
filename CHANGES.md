@@ -3,7 +3,7 @@ CHANGELOG
 
 1.0.1
 ---------------------
-+ Fixed issue with gradle versions X.Y.Z where Z > 0. See **[pull request #6](/../../pull/13).**
++ Fixed issue with gradle versions X.Y.Z where Z > 0. See **[pull request #13](/../../pull/13).**
 
 1.0.0
 ---------------------
