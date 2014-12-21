@@ -72,6 +72,7 @@ class RoboSpockUtils {
 	 * collection at some point, otherwise: an infinite loop will occur.
 	 *
 	 * Examples:
+	 * <pre>
 	 * - assert [1, 2, 3, 4, 5] == collectWhileNested( 1 ) {
 	 *     switch( it ) {
 	 *   	 case 1:  return [2, 3]
@@ -79,7 +80,10 @@ class RoboSpockUtils {
 	 *       default: return []
 	 *     }
 	 *   }
+	 * </pre>
+	 * <pre>
 	 * - collectWhileNested( 1 ) { [2] } would cause an infinite loop.
+	 * </pre>
 	 *
 	 * @param  init		the initial value to pass to fn, non-null.
 	 * @param  fn		the non-null function fn: T -> {x | x in T}.
