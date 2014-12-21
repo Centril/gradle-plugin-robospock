@@ -65,4 +65,39 @@ class RoboSpockUtilsSpecification extends RoboSpockSpecification {
 			false  || androidLibraryProject()
 			false  || androidLibraryProject( true )
 	}
+
+	def "collectWhileNested"() {
+		expect:
+			RoboSpockUtils.collectWhileNested( i, c ) == (r as HashSet)
+		where:
+			i	 | r				| c
+			1	 | [1]				| {[]}
+			1	 | [1, 2, 3] 		| this.&listWhenOne
+			1	 | [1, 2, 3, 4, 5]	| this.&listWhenTwo
+			1	 | [1, 2, 3, 4]		| this.&listOverlap
+	}
+
+	def listWhenOne( it ) { it == 1 ? [2, 3] : [] }
+	def listWhenTwo( it ) { it == 2 ? [4, 5] : listWhenOne( it ) }
+	def listOverlap( it ) { it == 2 ? [3, 4] : listWhenOne( it ) }
+
+	def "collectWhileNested is passed null"() {
+		when:
+			RoboSpockUtils.collectWhileNested( 1, null )
+		then:
+			thrown( NullPointerException )
+		when:
+			RoboSpockUtils.collectWhileNested( null, {} )
+		then:
+			def e1 = thrown( Exception )
+		when:
+			RoboSpockUtils.collectWhileNested( null, null )
+		then:
+			def e2 = thrown( Exception )
+		when:
+			def r = RoboSpockUtils.collectWhileNested( 1, {[]} )
+		then:
+			r == ([1] as HashSet)
+			notThrown( NullPointerException )
+	}
 }
