@@ -252,8 +252,8 @@ class RoboSpockConfiguration {
 		this.afterConfigured = l
 	}
 
-	protected void setRobospockTask( Task t ) {
-		this.robospockTask = t
+	protected void setRobospock( Task t ) {
+		this.robospock = t
 	}
 
 	protected void setPerspective( Project p ) {

@@ -56,9 +56,9 @@ class RoboSpockConfigurationSpecification extends RoboSpockSpecification {
 		given:
 			setupDefault()
 			Task t = root.tasks.create( "task" )
-			config.setRobospockTask( t )
+			config.setRobospock( t )
 		expect:
-			config.robospockTask == t
+			config.robospock == t
 	}
 
 	def "setPerspective"() {
