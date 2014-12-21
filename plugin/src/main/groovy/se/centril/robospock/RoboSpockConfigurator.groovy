@@ -25,6 +25,7 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.plugins.JavaBasePlugin
 
+import static se.centril.robospock.RoboSpockUtils.collectWhileNested
 import static se.centril.robospock.RoboSpockUtils.isLibrary
 
 /**
@@ -215,6 +216,7 @@ class RoboSpockConfigurator {
 		}
 	}
 
+/*
 	class DAG<V> {
 		Map<V, List<V>> edges = [:]
 
@@ -275,6 +277,7 @@ class RoboSpockConfigurator {
 			return e
 		}
 	}
+*/
 
 	def setupSourceSets() {
 		// We already have a test source set, no need to make it.
@@ -486,24 +489,13 @@ class RoboSpockConfigurator {
 	 * @param configuration the configuration to look in for sub projects, default = compile.
 	 * @return the sub{@link org.gradle.api.Project}s.
 	 */
-	def List<Project> getSubprojects( Project project, configuration = 'compile' ) {
-		def all = []
-
-		Queue queue = new ArrayDeque()
-		queue.add( project )
-		Project curr
-		while ( (curr = queue.poll()) != null ) {
-			curr.configurations.all.find { it.name == configuration }
-				.allDependencies
-				.findAll { it instanceof ProjectDependency }
-				.each {
-					def dep = ((ProjectDependency) it).dependencyProject
-					queue << dep
-					all << dep
-				}
+	def Set<Project> getSubprojects( Project project, configuration = 'compile' ) {
+		collectWhileNested( project ) { p ->
+			p.configurations.all.find { c -> c.name == configuration }
+			 .allDependencies
+			 .findResults {
+				it instanceof ProjectDependency ? it.dependencyProject : null
+			}
 		}
-
-		// Filter out duplicates due to project dependencies
-		return all.unique()
 	}
 }
