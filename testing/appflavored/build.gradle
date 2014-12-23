@@ -35,10 +35,10 @@ android {
 	flavorDimensions "abi", "version"
 
 	productFlavors {
-		free {
+		lite {
 			flavorDimension "version"
 		}
-		paid {
+		pro {
 			flavorDimension "version"
 		}
 		x86 {
@@ -55,38 +55,6 @@ android {
 
 dependencies {
 	compile 'com.google.guava:guava:18.0'
-	compile project(':testing:lib-explicit')
+	compile project( ':testing:lib-explicit' )
 	armCompile 'net.engio:mbassador:1.2.0'
 }
-
-/*
-
-afterEvaluate {
-rootProject.allprojects
-	.findAll { proj ->
-		proj.plugins.hasPlugin( 'com.android.application' )
-	}
-	.each { proj ->
-		proj.android.applicationVariants.each { variant ->
-			def out = variant.javaCompile.name
-			println "${proj.name} : java : ${out}"
-		}
-
-		proj.android.sourceSets
-			.findAll {
-				return true//it.name.startsWith( 'android' )
-			}
-			.each {
-				def out = it.java.srcDirs
-				println "${proj.name} : sourceSet : ${out}"
-			}
-
-		proj.configurations.each { conf ->
-			println "    Configuration: ${conf.name}"
-			conf.allDependencies.each { dep ->
-				println "      ${dep.group}:${dep.name}:${dep.version}"
-			}
-		}
-	}
-}
-*/
