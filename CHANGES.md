@@ -1,6 +1,10 @@
 CHANGELOG
 =====================
 
+1.0.1
+---------------------
++ Fixed issue with gradle versions X.Y.Z where Z > 0. See **[pull request #13](/../../pull/13).**
+
 1.0.0
 ---------------------
 + **NOTE:** This is the first major release, API won't change from now on

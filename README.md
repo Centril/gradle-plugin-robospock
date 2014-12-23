@@ -34,7 +34,7 @@ buildscript {
 	}
 	dependencies {
 		classpath 'com.jakewharton.sdkmanager:gradle-plugin:0.12.+'
-  		classpath 'se.centril.robospock:gradle-plugin-robospock:1.0.0'
+  		classpath 'se.centril.robospock:gradle-plugin-robospock:1.0.1'
   	}
 }
 ```
