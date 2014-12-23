@@ -20,12 +20,8 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.SourceSet
 
 /**
- * {@link RoboSpockTestVariant} holds the variant
- * and the corresponding source set hierarchy
- * and the task hierarchy.
- *
- * The hierarchies are inverted and start with
- * the deepest to and bubbles up to the top level.
+ * {@link RoboSpockTestVariant} holds the variant,
+ * the source set, and the task.
  *
  * @since 2014-12-01
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
@@ -39,17 +35,18 @@ public interface RoboSpockTestVariant {
 	public def getVariant()
 
 	/**
-	 * Returns the hierarchy of the source sets involved with the deepest first.
+	 * Returns the source set.
 	 *
-	 * @return the source set hiearchy.
+	 * @return the source set.
 	 */
-	public Iterable<SourceSet> getSourceSets()
+	public SourceSet getSourceSet()
 
 	/**
-	 * Returns the hierarchy of the tasks involved with the deepest first.
-	 * Only the deepest does any actual work, the others just depend in a hiearchy.
+	 * Returns the task.
 	 *
-	 * @return the source set hiearchy.
+	 * @return the task.
 	 */
-	public Iterable<Task> getTasks()
+	public Task getTask()
+
+	//public Iterable<RoboSpockTestVariant> getChildren()
 }

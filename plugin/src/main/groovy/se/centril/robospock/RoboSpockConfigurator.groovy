@@ -28,6 +28,8 @@ import org.gradle.api.plugins.JavaBasePlugin
 import static se.centril.robospock.RoboSpockUtils.collectWhileNested
 import static se.centril.robospock.RoboSpockUtils.isLibrary
 
+import se.centril.robospock.internal.TestVariantImpl
+
 /**
  * {@link RoboSpockConfigurator}: Is the heart of the plugin,
  * this is where all the action happens.
@@ -66,8 +68,8 @@ class RoboSpockConfigurator {
 	public void configure() {
 		[cfg.&verify, this.&applyGroovy, this.&addJCenter,
 		 this.&addAndroidRepositories, this.&addDependencies, this.&fixSupportLib,
-		 this.&setupTestTasks,
-		 this.&copyAndroidDependencies, this.&setupTestTask, this.&fixRobolectricBugs,
+		 //this.&setupTestTasks,
+		 this.&copyAndroidDependencies, this.&setupTestTasks, this.&fixRobolectricBugs,
 		 cfg.&executeAfterConfigured]
 		 	.each { it() }
 	}
@@ -184,9 +186,10 @@ class RoboSpockConfigurator {
 	 * Sets up the test tasks.
 	 */
 	def setupTestTasks() {
-		this.setupSourceSets()
+		this.setupGraph()
 
 		def tasks = cfg.tester.tasks
+		/*
 
 		// Create the actual test tasks per variant.
 		cfg.variants.each { variant ->
@@ -214,183 +217,99 @@ class RoboSpockConfigurator {
 			deleteAllActions()
 			dependsOn cfg.robospockTask
 		}
+		*/
 	}
 
-/*
-	class DAG<V> {
-		Map<V, List<V>> edges = [:]
-
-		class View<V> {
-			V of
-			DAG<V> dag
-
-			def View<V> add( V from, V to ) {
-				dag.add( from, to )
-				return this
-			}
-
-			def View<V> add( V from, List<V> to ) {
-				dag.add( from, to )
-				return this
-			}
-
-			def boolean linked( V to ) {
-				return dag.linked( of, to )
-			}
-		}
-
-		def boolean excludes( V vertex ) {
-			return edges[vertex] == null
-		}
-
-		def boolean includes( V vertex ) {
-			return edges[vertex] != null
-		}
-
-		def DAG<V> add( V vertex ) {
-			addImpl( vertex )
-			return this
-		}
-
-		def DAG<V> add( V from, V to ) {
-			addImpl( to )
-			addImpl( from ) << to
-		}
-
-		def DAG<V> add( V from, List<V> to ) {
-			addImpl( to )
-			addImpl( from ) += to
-		}
-
-		def boolean linked( V from, V to ) {
-			def e = edges[vertex]
-			return e != null && e.contains( to )
-		}
-
-
-
-		private List<Edge<V>> addImpl( V vertex ) {
-			def e = edges[vertex]
-			if ( e == null ) {
-				e = edges[vertex] = []
-			}
-			return e
-		}
-	}
-*/
-
-	def setupSourceSets() {
+	def setupGraph() {
 		// We already have a test source set, no need to make it.
-		def ss = cfg.tester.sourceSets
-		def confs = cfg.tester.configurations
+		def p = cfg.tester
+		def ss = p.sourceSets
+		def confs = p.configurations
+		def vars = cfg.variants
 
-		def tree = { [:].withDefault{ owner.call() } }
-		def h = tree()
-		h.
+		// The graph:
+		def dag = new RoboSpockDAG<RoboSpockTestVariant>()
 
-		// Maps from source set -> configurations.
-		def mapping = ['test': ss.test]
+		// Maps from name -> TV.
+		Map<String, TestVariantImpl> mapping = [:]
 
+		// Root:
+		TestVariantImpl root = new TestVariantImpl( p, ss.test )
+		dag.add( root )
 
-		// Add a source set for each BT = build type.
-		cfg.buildTypes.each { bt ->
-			// Construct the source set.
-			def btSS = createSS( bt )
-			mapping[bt] = btSS
-
-			// Extend from test source set.
-			extendConfiguration( btSS, ss.test )
+		// Variant that is a build type:
+		// Android plugin creates variants with same name as build types, process this later.
+		boolean notBtVariant = true
+		for ( def v : vars ) {
+			if ( v.name in cfg.buildTypes ) {
+				notBtVariant = false
+				break
+			}
 		}
 
-		// Add a source set for each PF = product flavor.
+		// For each build type:
+		if ( notBtVariant ) {
+			cfg.buildTypes.each { bt ->
+				def v = new TestVariantImpl( p, bt, 'build type' + bt )
+				mapping[bt] = v
+				dag.add( root, v )
+				v.extendFrom( p, root )
+			}
+		}
+
+		// Add for each PF = product flavor:
+		// Library projects don't have PFs.
 		if ( !isLibrary( cfg.android ) ) {
 			cfg.variants.collectMany { it.productFlavors }.unique().each { pf ->
-				// Construct the source set.
-				def pfSS = createSS( pf )
-				mapping[pf] = pfSS
-				extendConfiguration( pfSS, ss.test )
+				def vPf = new TestVariantImpl( p, pf, 'product flavor ' + pf.name )
+				mapping[pf] = vPf
+				dag.add( root, vPf )
+				vPf.extendFrom( p, root )
 
-				// Add a source set for each T = (PF, BT).
+				// Add for each T = (PF, BT):
 				cfg.buildTypes.each { bt ->
-					// Construct the source set.
-					def name = pf.name + bt.capitalize()
-					def pfBtSS = createSS( name )
-					mapping[name] = pfBtSS
+					def name = pf.name + bt.capitalize(),
+						vPfBt = new TestVariantImpl( p, name, '(product flavor, build type) ' + name ),
+						vBt = mapping[bt]
 
-					// Extend from PF and BT.
-					extendConfiguration( pfBtSS, pfSS )
-					extendConfiguration( pfBtSS, mapping[bt] )
+					mapping[name] = vPfBt
+					dag.add( vPf, vPfBt ).add( vBt, vPfBt )
+					vPfBt.extendFrom( p, vPf ).extendFrom( p, vBt )
 				}
 			}
 		}
 
-		// Add a source set for each variant.
-		cfg.variants.each { variant ->
+		// Add for each variant.
+		vars.each { var ->
+			def bt = var.buildType.name,
+				v = new TestVariantImpl( p, cfg, var )
 
-			def bt = variant.buildType.name
-			// Android plugin creates variants with same name as build types, avoid them.
-			if ( variant.name != bt ) {
-				// Construct the source set.
-				def vSS = createSS( variant )
-
-				// Either extend from the BT or every T = (PF, BT).
-				// In the latter case, since T extends BT, extending T => extending BT:
-				if ( isLibrary( cfg.android ) || variant.productFlavors.isEmpty() ) {
-					extendConfiguration( vSS, mapping[bt] )
-				} else {
-					variant.productFlavors.each { pf ->
-						extendConfiguration( vSS, mapping[pf.name + bt.capitalize()] )
-					}
+			// Either extend from the BT or every T = (PF, BT).
+			// In the latter case, since T extends BT, extending T => extending BT:
+			if ( isLibrary( cfg.android ) || var.productFlavors.isEmpty() ) {
+				def vBt = mapping[bt]
+				if ( vBt == null ) {
+					vBt = root
+				}
+				dag.add( vBt, v )
+				v.extendFrom( p, vBt )
+			} else {
+				var.productFlavors.each { pf ->
+					def vPfBt = mapping[pf.name + bt.capitalize()]
+					dag.add( vPfBt, v )
+					v.extendFrom( p, vPfBt )
 				}
 			}
 		}
 
-		println "${cfg.tester} : after"
-		cfg.tester.sourceSets.each {
+		// Handle dependencies.
+		//
+
+		cfg.tester.sourceSets
+		   .findAll { it.name.startsWith( 'test' ) }
+		   .each {
 			println "${cfg.tester} : source set: ${it.name}"
 		}
-		cfg.tester.configurations.each { conf ->
-			println "    Configuration: ${conf.name}"
-			conf.allDependencies.each { dep ->
-				println "      ${dep.group}:${dep.name}:${dep.version}"
-			}
-		}
-	}
-
-	def extendConfiguration( ss, baseSS ) {
-		def confs = cfg.tester.configurations
-		def baseCompile = confs[baseSS.compileConfigurationName]
-		def baseRT = confs[baseSS.runtimeConfigurationName]
-		def compile = confs[ss.compileConfigurationName].extendsFrom( baseCompile )
-		confs[ss.runtimeConfigurationName].extendsFrom( compile, baseRT )
-	}
-
-	def createSS( ssName ) {
-		// Normalize name & Create or bail.
-		ssName = name instanceof String ? name : name.name
-		ssName = 'test' + name.capitalize()
-		def sets = cfg.tester.sourceSets
-		def ss = sets.findByName( ssName )
-		if ( ss == null ) {
-			// Set source dirs for these languages and some optional ones.
-			ss = sets.create( ssName )
-			['java', 'groovy', 'resources'].each {
-				lang -> ssLang( ss, lang )
-			}
-			['scala', 'kotlin'].each {
-				lang -> ssLang( ss, lang, true )
-			}
-		}
-
-		return ss
-	}
-
-	def ssLang( ss, lang, check = false ) {
-		if ( check && !cfg.tester.plugins.hasPlugin( lang ) ) {
-			return
-		}
-
-		ss.java.srcDir cfg.tester.file( "src/${ss.name}/$lang" )
 	}
 
 	/**
