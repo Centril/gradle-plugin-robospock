@@ -221,21 +221,25 @@ class RoboSpockConfigurator {
 	}
 
 	def setupGraph() {
-		// We already have a test source set, no need to make it.
-		def p = cfg.tester
-		def ss = p.sourceSets
-		def confs = p.configurations
-		def vars = cfg.variants
-
-		// The graph:
-		def dag = new RoboSpockDAG<RoboSpockTestVariant>()
-
-		// Maps from name -> TV.
-		Map<String, TestVariantImpl> mapping = [:]
+		def p = cfg.tester,
+			vars = cfg.variants,
+			// The graph:
+			dag = new RoboSpockDAG<RoboSpockTestVariant>(),
+			// Maps from name -> TV.
+			mapping = [:],
+			extend = { List<Object> bases, Object vName, RoboSpockTestVariant vertex ->
+				mapping[vName] = vertex
+				dag.add( vertex )
+				bases.each { b ->
+					def base = b instanceof TestVariantImpl ? b : mapping[b]
+					dag.add( base, vertex )
+					vertex.extendFrom( p, base )
+				}
+				return vertex
+			}
 
 		// Root:
-		TestVariantImpl root = new TestVariantImpl( p, ss.test )
-		dag.add( root )
+		def root = extend( [], 'root', new TestVariantImpl( p, p.sourceSets.test ) )
 
 		// Variant that is a build type:
 		// Android plugin creates variants with same name as build types, process this later.
@@ -250,10 +254,7 @@ class RoboSpockConfigurator {
 		// For each build type:
 		if ( notBtVariant ) {
 			cfg.buildTypes.each { bt ->
-				def v = new TestVariantImpl( p, bt, 'build type' + bt )
-				mapping[bt] = v
-				dag.add( root, v )
-				v.extendFrom( p, root )
+				extend( [root], bt, new TestVariantImpl( p, bt, 'build type' + bt ) )
 			}
 		}
 
@@ -261,20 +262,11 @@ class RoboSpockConfigurator {
 		// Library projects don't have PFs.
 		if ( !isLibrary( cfg.android ) ) {
 			cfg.variants.collectMany { it.productFlavors }.unique().each { pf ->
-				def vPf = new TestVariantImpl( p, pf, 'product flavor ' + pf.name )
-				mapping[pf] = vPf
-				dag.add( root, vPf )
-				vPf.extendFrom( p, root )
-
+				def vPf = extend( [root], pf, new TestVariantImpl( p, pf, 'product flavor ' + pf.name ) )
 				// Add for each T = (PF, BT):
 				cfg.buildTypes.each { bt ->
-					def name = pf.name + bt.capitalize(),
-						vPfBt = new TestVariantImpl( p, name, '(product flavor, build type) ' + name ),
-						vBt = mapping[bt]
-
-					mapping[name] = vPfBt
-					dag.add( vPf, vPfBt ).add( vBt, vPfBt )
-					vPfBt.extendFrom( p, vPf ).extendFrom( p, vBt )
+					def name = pf.name + bt.capitalize()
+					extend( [bt, vPf], name, new TestVariantImpl( p, name, '(product flavor, build type) ' + name ) )
 				}
 			}
 		}
@@ -287,28 +279,12 @@ class RoboSpockConfigurator {
 			// Either extend from the BT or every T = (PF, BT).
 			// In the latter case, since T extends BT, extending T => extending BT:
 			if ( isLibrary( cfg.android ) || var.productFlavors.isEmpty() ) {
-				def vBt = mapping[bt]
-				if ( vBt == null ) {
-					vBt = root
-				}
-				dag.add( vBt, v )
-				v.extendFrom( p, vBt )
+				extend( [mapping[bt] ?: root], var.name, v )
 			} else {
 				var.productFlavors.each { pf ->
-					def vPfBt = mapping[pf.name + bt.capitalize()]
-					dag.add( vPfBt, v )
-					v.extendFrom( p, vPfBt )
+					extend( [pf.name + bt.capitalize()], var.name, v )
 				}
 			}
-		}
-
-		// Handle dependencies.
-		//
-
-		cfg.tester.sourceSets
-		   .findAll { it.name.startsWith( 'test' ) }
-		   .each {
-			println "${cfg.tester} : source set: ${it.name}"
 		}
 	}
 

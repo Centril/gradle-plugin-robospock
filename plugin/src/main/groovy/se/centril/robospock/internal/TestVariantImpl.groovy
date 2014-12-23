@@ -97,6 +97,13 @@ public final class TestVariantImpl implements RoboSpockTestVariant {
 		task = createReferring( p, name, taskDesc )
 	}
 
+	/**
+	 * Make this extend from.
+	 *
+	 * @param  p    the project.
+	 * @param  from the TV to extend from.
+	 * @return      this.
+	 */
 	public TestVariantImpl extendFrom( Project p, RoboSpockTestVariant from ) {
 		// Extend configurations.
 		def confs = p.configurations,
