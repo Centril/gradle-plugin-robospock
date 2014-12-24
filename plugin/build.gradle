@@ -160,6 +160,9 @@ bintray {
             gpg {
             	sign = true
             }
+            mavenCentralSync {
+            	sync = false
+            }
         }
 		publicDownloadNumbers = true
 	}
