@@ -36,7 +36,7 @@ class RoboSpockConstants {
 	private static final String TASK_DESCRIPTION_PRODUCT_FLAVOR	= 'product flavor '
 	private static final String TASK_DESCRIPTION_PF_BT			= '(product flavor, build type) '
 
-	private static final String		  SOURCESET_NAME_PREFIX 	= 'test'
+	private static final String		  SOURCESET_NAME_PREFIX		= 'test'
 	private static final List<String> SOURCESET_LANG			= ['java', 'groovy', 'resources']
 	private static final List<String> SOURCESET_LANG_REQPLUGIN	= ['scala', 'kotlin']
 
@@ -44,8 +44,13 @@ class RoboSpockConstants {
 	private static final String JAR_TASK_GROUP					= 'robospockZip2Jar'
 	private static final String JAR_TASK_DESCRIPTION			= "Zips for Robospock."
 
-	private static final String MANIFEST_FILE					= 'AndroidManifest.xml'
+	private static final String SYS_ANDROID_MANIFEST			= 'android.manifest'
+	private static final String SYS_ANDROID_RESOURCES			= 'android.resources'
+	private static final String SYS_ANDROID_ASSETS				= 'android.assets'
+
 	private static final String INTERMEDIATES_PATH				= 'intermediates/'
+	private static final String MANIFEST_FILE					= 'AndroidManifest.xml'
+	private static final String MANIFEST_FINAL_PATH				= 'manifests/full'
 	private static final String MANIFEST_PATH					= INTERMEDIATES_PATH + 'manifests/full'
 	private static final String AAR_PATH						= INTERMEDIATES_PATH + 'exploded-aar/'
 	private static final String CLASSES_PATH					= INTERMEDIATES_PATH + 'classes/'

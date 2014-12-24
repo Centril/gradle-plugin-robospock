@@ -48,22 +48,21 @@ class RoboSpockTest extends Test {
 		/*
 		 * Setup classpath:
 		 */
-	    testClassesDir = sourceSet.output.classesDir
-	    classpath = sourceSet.runtimeClasspath
+	    testClassesDir	= sourceSet.output.classesDir
+	    classpath		= sourceSet.runtimeClasspath
 
 		/*
 		 * Setup for Roboelectric:
 		 */
 
 		// set a system property for the test JVM(s)
-		systemProperty 'ro.build.date.utc', '1'
-		systemProperty 'ro.kernel.qemu', '0'
+		systemProperty	'ro.build.date.utc',	'1'
+		systemProperty	'ro.kernel.qemu',		'0'
 
 		// set manifest.
-		systemProperty 'android.manifest', this.buildPath( config.tester, 'manifests/full', MANIFEST_FILE )
-
-		systemProperty 'android.resources', this.buildPath( config.android, 'res', '' )
-		systemProperty 'android.assets', this.buildPath( config.android, 'res', 'raw' )
+		systemProperty	SYS_ANDROID_MANIFEST,	this.buildPath( config.tester, MANIFEST_FINAL_PATH, MANIFEST_FILE )
+		systemProperty	SYS_ANDROID_RESOURCES,	this.buildPath( config.android, 'res', '' )
+		systemProperty	SYS_ANDROID_ASSETS,		this.buildPath( config.android, 'res', 'raw' )
 
 		// set working directory.
 		def wd = config.mainSourceDir()
