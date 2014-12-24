@@ -16,6 +16,7 @@
 
 package se.centril.robospock.internal
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.Task
@@ -25,6 +26,8 @@ import org.gradle.api.tasks.SourceSetContainer
 import se.centril.robospock.RoboSpockConfiguration
 import se.centril.robospock.RoboSpockTest
 import se.centril.robospock.RoboSpockTestVariant
+
+import static se.centril.robospock.internal.RoboSpockConstants.*
 
 /**
  * {@link TestVariantImpl} is the implementation
@@ -38,11 +41,6 @@ public final class TestVariantImpl implements RoboSpockTestVariant {
 	Task task
 	def variant
 
-	private static final String ROBOSPOCK_TASK_NAME_BASE = 'robospock'
-	private static final String ROBOSPOCK_DESCRIPTION_GROUP = 'Runs all the unit tests using RoboSpock, for all variants'
-	private static final String ROBOSPOCK_DESCRIPTION_UNIT = 'Runs the unit test using RoboSpock, for variant: '
-	private static final String ROBOSPOCK_GROUP = JavaBasePlugin.VERIFICATION_GROUP
-
 	/**
 	 * {@link TestVariantImpl} constructor for test task with variant.
 	 *
@@ -51,17 +49,10 @@ public final class TestVariantImpl implements RoboSpockTestVariant {
 	 * @param  v    the variant.
 	 */
 	public TestVariantImpl( Project p, RoboSpockConfiguration cfg, v ) {
-		variant = v
-
 		def name = normalizeName( v.name )
+		variant = v
 		sourceSet = createSourceSet( p, name )
-
-		task = p.tasks.create(
-			type: RoboSpockTest,
-			name: ROBOSPOCK_TASK_NAME_BASE + name,
-			description: ROBOSPOCK_DESCRIPTION_UNIT + v.name + '.',
-			group: ROBOSPOCK_GROUP
-		) {
+		task = createTask( p, name, TASK_DESCRIPTION_UNIT + v.name + '.', RoboSpockTest ) {
 			config = cfg
 			variant = v
 			sourceSet = this.sourceSet
@@ -125,18 +116,29 @@ public final class TestVariantImpl implements RoboSpockTestVariant {
 	/**
 	 * Creates a referring task.
 	 *
+	 * @param  p         the project.
 	 * @param  name      the name of the source set.
 	 * @param  taskDesc  the end of the description of the task.
 	 * @return           the task.
 	 */
 	private static Task createReferring( Project p, String name, String taskDesc ) {
-		p.tasks.create(
-			name: ROBOSPOCK_TASK_NAME_BASE + name,
-			description: ROBOSPOCK_DESCRIPTION_GROUP +
-						 (taskDesc == null ? ' with' + taskDesc : '') +
-						 '.',
-			group: ROBOSPOCK_GROUP
-		)
+		createTask( p, name, TASK_DESCRIPTION_GROUP + (taskDesc == null ? ' with' + taskDesc : '') + '.' )
+	}
+
+	/**
+	 * Creates a task.
+	 *
+	 * @param  p        the project.
+	 * @param  name     the name of the task.
+	 * @param  desc     the description of the task.
+	 * @param  type     the type of the task.
+	 * @param  closure  the closure if any.
+	 * @return          the task.
+	 */
+	private static Task createTask( Project p, String name, String taskDesc,
+		Class<? extends Task> type = DefaultTask, Closure closure = null ) {
+		def options = [name: TASK_NAME_BASE + name, description: taskDesc + '.', group: TASK_GROUP, type: type]
+		closure ? p.tasks.create( options, closure ) : p.tasks.create( options )
 	}
 
 	/**
@@ -165,9 +167,9 @@ public final class TestVariantImpl implements RoboSpockTestVariant {
 
 		if ( ss == null ) {
 			// Set source dirs for these languages and some optional ones.
-			ss = sets.create( 'test' + name )
-			['java', 'groovy', 'resources'].each { sourceSetLang( p, ss, it ) }
-			['scala', 'kotlin'].each { sourceSetLang( p, ss, it, true ) }
+			ss = sets.create( SOURCESET_NAME_PREFIX + name )
+			SOURCESET_LANG.each { sourceSetLang( p, ss, it ) }
+			SOURCESET_LANG_REQPLUGIN.each { sourceSetLang( p, ss, it, true ) }
 		}
 
 		return ss
@@ -185,7 +187,7 @@ public final class TestVariantImpl implements RoboSpockTestVariant {
 	 */
 	private static void sourceSetLang( Project p, SourceSet ss, String lang, boolean check = false ) {
 		if ( !check || p.plugins.hasPlugin( lang ) ) {
-			ss.java.srcDir p.file( "src/${ss.name}/$lang" )
+			ss.java.srcDir p.file( "src/${ss.name}/${lang}" )
 		}
 	}
 }

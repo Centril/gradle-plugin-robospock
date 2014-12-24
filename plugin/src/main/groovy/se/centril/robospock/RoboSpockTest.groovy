@@ -20,6 +20,8 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.Test
 
+import static se.centril.robospock.internal.RoboSpockConstants.*
+
 /**
  * {@link RoboSpockTest} is the test task.
  *
@@ -43,16 +45,11 @@ class RoboSpockTest extends Test {
 	 * @param  cfg the configuration object to use.
 	 */
 	public void configure() {
-		// Setup classpath.
+		/*
+		 * Setup classpath:
+		 */
 	    testClassesDir = sourceSet.output.classesDir
 	    classpath = sourceSet.runtimeClasspath
-
-		/*
-		 * Naming:
-		 */
-
-		setDescription  'Runs the unit tests using RoboSpock.'
-		setGroup        JavaBasePlugin.VERIFICATION_GROUP
 
 		/*
 		 * Setup for Roboelectric:
@@ -63,7 +60,7 @@ class RoboSpockTest extends Test {
 		systemProperty 'ro.kernel.qemu', '0'
 
 		// set manifest.
-		systemProperty 'android.manifest', this.buildPath( config.tester, 'manifests/full', 'AndroidManifest.xml' )
+		systemProperty 'android.manifest', this.buildPath( config.tester, 'manifests/full', MANIFEST_FILE )
 
 		systemProperty 'android.resources', this.buildPath( config.android, 'res', '' )
 		systemProperty 'android.assets', this.buildPath( config.android, 'res', 'raw' )
@@ -79,8 +76,8 @@ class RoboSpockTest extends Test {
 		 */
 
 		// set heap size for the test JVM(s)
-		minHeapSize = "128m"
-		maxHeapSize = "1024m"
+		minHeapSize = TEST_JVM_MIN_HEAP_SIZE
+		maxHeapSize = TEST_JVM_MAX_HEAP_SIZE
 
 		/*
 		 * Logging:
@@ -115,7 +112,7 @@ class RoboSpockTest extends Test {
 	 * @param post the string after buildType.
 	 * @return the {@link java.io.File}
 	 */
-	def File buildPath( proj, pre, post ) {
-		return new File( proj.buildDir, "intermediates/${pre}/${config.buildTypes[0]}/${post}" )
+	private File buildPath( proj, pre, post ) {
+		return new File( proj.buildDir, "${INTERMEDIATES_PATH}${pre}/${config.buildTypes[0]}/${post}" )
 	}
 }

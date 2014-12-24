@@ -19,6 +19,8 @@ package se.centril.robospock
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+import static se.centril.robospock.internal.RoboSpockConstants.*
+
 /**
  * {@link RoboSpockPlugin}:
  *
@@ -83,6 +85,6 @@ import org.gradle.api.Project
 class RoboSpockPlugin implements Plugin<Project> {
 	void apply( Project project ) {
 		// Create & execute.
-		RoboSpockAction.perform( project.extensions.create( "robospock", RoboSpockConfiguration, project ) )
+		RoboSpockAction.perform( project.extensions.create( ROBOSPOCK_EXTENSION, RoboSpockConfiguration, project ) )
 	}
 }
