@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package se.centril.robospock
+package se.centril.robospock.internal
 
 import org.gradle.api.Project
 

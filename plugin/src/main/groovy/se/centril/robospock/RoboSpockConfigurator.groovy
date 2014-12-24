@@ -28,8 +28,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 
 import static java.util.regex.Pattern.quote
 
-import static se.centril.robospock.RoboSpockUtils.collectWhileNested
-import static se.centril.robospock.RoboSpockUtils.isLibrary
+import static se.centril.robospock.internal.RoboSpockUtils.*
 import static se.centril.robospock.internal.RoboSpockConstants.*
 import se.centril.robospock.internal.TestVariantImpl
 

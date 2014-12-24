@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package se.centril.robospock
+package se.centril.robospock.internal
 
 import com.android.SdkConstants
 
@@ -22,6 +22,10 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
+
+import static se.centril.robospock.internal.RoboSpockUtils.*
+
+import se.centril.robospock.RoboSpockSpecification
 
 /**
  * Tests {@link RoboSpockUtils}
@@ -32,7 +36,7 @@ import org.gradle.testfixtures.ProjectBuilder
 class RoboSpockUtilsSpecification extends RoboSpockSpecification {
 	def "isAndroid"() {
 		expect:
-			RoboSpockUtils.isAndroid( project ) == expect
+			isAndroid( project ) == expect
 		where:
 			expect || project
 			false  || testProject()
@@ -44,7 +48,7 @@ class RoboSpockUtilsSpecification extends RoboSpockSpecification {
 
 	def "isLibrary"() {
 		expect:
-			RoboSpockUtils.isLibrary( project ) == expect
+			isLibrary( project ) == expect
 		where:
 			expect || project
 			false  || testProject()
@@ -56,7 +60,7 @@ class RoboSpockUtilsSpecification extends RoboSpockSpecification {
 
 	def "isApplication"() {
 		expect:
-			RoboSpockUtils.isApplication( project ) == expect
+			isApplication( project ) == expect
 		where:
 			expect || project
 			false  || testProject()
@@ -68,7 +72,7 @@ class RoboSpockUtilsSpecification extends RoboSpockSpecification {
 
 	def "collectWhileNested"() {
 		expect:
-			RoboSpockUtils.collectWhileNested( i, c ) == (r as HashSet)
+			collectWhileNested( i, c ) == (r as HashSet)
 		where:
 			i	 | r				| c
 			1	 | [1]				| {[]}
@@ -83,19 +87,19 @@ class RoboSpockUtilsSpecification extends RoboSpockSpecification {
 
 	def "collectWhileNested is passed null"() {
 		when:
-			RoboSpockUtils.collectWhileNested( 1, null )
+			collectWhileNested( 1, null )
 		then:
 			thrown( NullPointerException )
 		when:
-			RoboSpockUtils.collectWhileNested( null, {} )
+			collectWhileNested( null, {} )
 		then:
 			def e1 = thrown( Exception )
 		when:
-			RoboSpockUtils.collectWhileNested( null, null )
+			collectWhileNested( null, null )
 		then:
 			def e2 = thrown( Exception )
 		when:
-			def r = RoboSpockUtils.collectWhileNested( 1, {[]} )
+			def r = collectWhileNested( 1, {[]} )
 		then:
 			r == ([1] as HashSet)
 			notThrown( NullPointerException )

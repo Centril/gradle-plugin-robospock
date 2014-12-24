@@ -22,7 +22,7 @@ import org.gradle.api.Task
 
 import java.util.regex.Pattern
 
-import static se.centril.robospock.RoboSpockUtils.*
+import static se.centril.robospock.internal.RoboSpockUtils.*
 import static se.centril.robospock.RoboSpockConfiguration.tryPath
 
 /**
