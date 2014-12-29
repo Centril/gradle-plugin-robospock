@@ -23,6 +23,9 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
 
+import se.centril.robospock.graph.DirectedAcyclicGraph
+import se.centril.robospock.graph.internal.DirectedAcyclicGraphImpl
+
 import spock.lang.Specification
 
 /**
@@ -52,13 +55,13 @@ class RoboSpockConfigurationSpecification extends RoboSpockSpecification {
 			r == config
 	}
 
-	def "setRobospockTask"() {
+	def "setGraph"() {
 		given:
 			setupDefault()
-			Task t = root.tasks.create( "task" )
-			config.setRobospock( t )
+			DirectedAcyclicGraph<RoboSpockVariant> g = new DirectedAcyclicGraphImpl<RoboSpockVariant>()
+			config.setGraph( g )
 		expect:
-			config.robospock == t
+			config.graph == g
 	}
 
 	def "setPerspective"() {

@@ -75,8 +75,8 @@ class RoboSpockTest extends Test {
 		 */
 
 		// set heap size for the test JVM(s)
-		minHeapSize = TEST_JVM_MIN_HEAP_SIZE
-		maxHeapSize = TEST_JVM_MAX_HEAP_SIZE
+		minHeapSize	=	TEST_JVM_MIN_HEAP_SIZE
+		maxHeapSize	=	TEST_JVM_MAX_HEAP_SIZE
 
 		/*
 		 * Logging:

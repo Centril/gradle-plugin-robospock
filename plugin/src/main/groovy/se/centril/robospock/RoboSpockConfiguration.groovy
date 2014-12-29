@@ -25,6 +25,8 @@ import java.util.regex.Pattern
 import static se.centril.robospock.internal.RoboSpockUtils.*
 import static se.centril.robospock.RoboSpockConfiguration.tryPath
 
+import se.centril.robospock.graph.DirectedAcyclicGraph
+
 /**
  * {@link RoboSpockConfiguration} determines how
  * the {@link RoboSpockPlugin} should be used.
@@ -95,19 +97,14 @@ class RoboSpockConfiguration {
 	List<Closure> afterConfigured = []
 
 	/**
-	 * Read Only robospock testing task, can only be read from
-	 * in {@link #afterConfigured(groovy.lang.Closure)}.
-	 */
-	Task robospock
-
-	/**
-	 * (Read Only) robospock testing variant tasks, can only be
+	 * (Read Only) Graph of testing variant tasks, can only be
 	 * read from in {@link #afterConfigured(groovy.lang.Closure)}.
 	 */
-	List<RoboSpockTestVariant> variants
+	DirectedAcyclicGraph<RoboSpockVariant> graph
 
 	/**
-	 * The perspective (of a project) from which things are applied.
+	 * (Read Only) The perspective (of a project)
+	 * from which things are applied.
 	 */
 	Project perspective
 
@@ -252,8 +249,8 @@ class RoboSpockConfiguration {
 		this.afterConfigured = l
 	}
 
-	protected void setRobospock( Task t ) {
-		this.robospock = t
+	protected void setGraph(DirectedAcyclicGraph<RoboSpockVariant> g ) {
+		this.graph = g
 	}
 
 	protected void setPerspective( Project p ) {

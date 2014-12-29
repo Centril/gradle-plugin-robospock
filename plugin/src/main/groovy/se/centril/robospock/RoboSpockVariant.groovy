@@ -17,6 +17,7 @@
 package se.centril.robospock
 
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 
 /**
@@ -26,13 +27,27 @@ import org.gradle.api.tasks.SourceSet
  * @since 2014-12-01
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
  */
-public interface RoboSpockTestVariant {
+public interface RoboSpockVariant {
 	/**
 	 * Returns the variant.
 	 *
 	 * @return the variant.
 	 */
 	public def getVariant()
+
+	/**
+	 * Returns the "testCompile" configuration for the variant.
+	 *
+	 * @return the "testCompile" configuration.
+	 */
+	public Configuration getTestCompile()
+
+	/**
+	 * Returns the "testRuntime" configuration for the variant.
+	 *
+	 * @return the "testRuntime" configuration.
+	 */
+	public Configuration getTestRuntime()
 
 	/**
 	 * Returns the source set.
@@ -47,6 +62,4 @@ public interface RoboSpockTestVariant {
 	 * @return the task.
 	 */
 	public Task getTask()
-
-	//public Iterable<RoboSpockTestVariant> getChildren()
 }
