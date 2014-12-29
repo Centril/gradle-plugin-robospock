@@ -214,9 +214,9 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * Removes edge (from, e)
 	 * each e in from: (e, to).
 	 *
-	 * @param  from the collection from which to
-	 *              take the from part of the edges.
-	 * @param  to   the from part of the edge.
+	 * @param  from the from part of the edge.
+	 * @param  to   the collection from which to
+	 *              take the to part of the edges.
 	 * @return      true if any edge was removed.
 	 */
 	public boolean remove( V from, Collection<V> to ) {
