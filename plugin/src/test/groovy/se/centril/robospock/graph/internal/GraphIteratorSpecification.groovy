@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package se.centril.robospock.internal.graph
+package se.centril.robospock.graph.internal
 
 import spock.lang.Specification
 

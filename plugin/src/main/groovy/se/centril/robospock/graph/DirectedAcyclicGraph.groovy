@@ -14,32 +14,15 @@
  * limitations under the License.
  */
 
-package se.centril.robospock.internal.graph
+package se.centril.robospock.graph
 
 /**
- * {@link DirectedAcyclicGraph}: is a simple
- * implementation of a DAG, a Directed Acyclic Graph.
- *
- * The implementation does not check for cycles,
- * so the user must take this into consideration.
+ * {@link DirectedAcyclicGraph}: is a Directed Acyclic Graph.
  *
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
- * @since 2014-12-22
+ * @since 2014-12-27
  */
-class DirectedAcyclicGraph<V> implements Collection<V> {
-	Map<V, Set<V>> edges = [:]
-
-	/**
-	 * Returns a view of the graph from the
-	 * perspective of the given vertex.
-	 *
-	 * @param  vertex the perspective.
-	 * @return        the view.
-	 */
-	public GraphView<V> view( V vertex ) {
-		new GraphView<V>( vertex )
-	}
-
+interface DirectedAcyclicGraph<V> extends Collection<V> {
 	//================================================================================
 	// Adding operations.
 	//================================================================================
@@ -50,17 +33,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  vertex the vertex to add to graph.
 	 * @return        true if vertex is added.
 	 */
-	public boolean add( V vertex ) {
-		Set<V> e = edges[vertex]
-		boolean willAdd = e == null
-
-		if ( willAdd ) {
-			e = []
-			edges[vertex] = e
-		}
-
-		return willAdd
-	}
+	boolean add( V vertex )
 
 	/**
 	 * Adds vertrices to graph if not already present.
@@ -68,15 +41,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  c the vertrices to add to graph.
 	 * @return   true if any of the vertrices are added.
 	 */
-	public boolean addAll( Collection<? extends V> c ) {
-		boolean added = false
-		for ( V v : c ) {
-			if ( add( v ) ) {
-				added = true
-			}
-		}
-		return added
-	}
+	boolean addAll( Collection<? extends V> c )
 
 	/**
 	 * Adds a directional edge (from, to)
@@ -90,21 +55,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @return      true if any of to or from are
 	 *              added or if the edge is added.
 	 */
-	public boolean add( V from, V to ) {
-		// Add to.
-		boolean addedTo = add( to )
-
-		// Add from.
-		Set<V> outFrom = edges[from]
-		boolean willAddFrom = outFrom == null
-		if ( willAddFrom ) {
-			outFrom = []
-			edges[from] = outFrom
-		}
-
-		// Is added?
-		return outFrom.add( to ) || addedTo || willAddFrom
-	}
+	boolean add( V from, V to )
 
 	/**
 	 * Adds a directional edge
@@ -115,15 +66,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 *              take the to part of the edges.
 	 * @return      true if any of to or from are added.
 	 */
-	public boolean add( V from, Collection<V> to ) {
-		// Add from & to's.
-		boolean addedFrom = add( from ),
-				addedTo = addAll( to ),
-				linkFrom = edges[from].addAll( to )
-
-		// Is added?
-		return linkFrom || addedTo || addedFrom
-	}
+	boolean add( V from, Collection<V> to )
 
 	/**
 	 * Adds a directional edge
@@ -134,15 +77,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  to   the from part of the edge.
 	 * @return      true if any of to or from are added.
 	 */
-	public boolean add( Collection<V> from, to ) {
-		// Add all from's & to.
-		boolean addedFrom = addAll( from ),
-				addedTo = add( to ),
-				linkFroms = from.inject( false ) { r, f -> edges[f].add( to ) || r }
-
-		// Is added?
-		return	linkFroms || addedTo || addedFrom
-	}
+	boolean add( Collection<V> from, to )
 
 	//================================================================================
 	// Removing operations.
@@ -154,9 +89,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  o the object.
 	 * @return   true if the object was removed.
 	 */
-	public boolean remove( Object o ) {
-		edges.remove( o ) != null
-	}
+	boolean remove( Object o )
 
 	/**
 	 * Removes the all of the given objects from the graph.
@@ -164,15 +97,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  c the collection.
 	 * @return   true if any of the vertrices in the graph was removed.
 	 */
-	public boolean removeAll( Collection<?> c ) {
-		boolean retr = false
-		for ( Object o : c ) {
-			if ( remove( o ) ) {
-				retr = true
-			}
-		}
-		return retr
-	}
+	boolean removeAll( Collection<?> c )
 
 	/**
 	 * Removes the all of the objects not in given collection from the graph.
@@ -180,24 +105,12 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  c the collection.
 	 * @return   true if any of the vertrices in the graph was removed.
 	 */
-	public boolean retainAll( Collection<?> c ) {
-		boolean retr = false
-		for ( Iterator<V> iter = edges.keySet().iterator(); iter.hasNext(); ) {
-			V v = iter.next()
-			if ( !(v in c) ) {
-				iter.remove()
-				retr = true
-			}
-		}
-		return retr
-	}
+	boolean retainAll( Collection<?> c )
 
 	/**
 	 * Clears the graph removing all vertrices and edges.
 	 */
-	public void clear() {
-		edges.clear()
-	}
+	void clear()
 
 	/**
 	 * Removes edge (from, to).
@@ -206,9 +119,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  to   the to part of edge.
 	 * @return      true if the edge was removed.
 	 */
-	public boolean remove( V from, V to ) {
-		edges[from].remove( to )
-	}
+	boolean remove( V from, V to )
 
 	/**
 	 * Removes edge (from, e)
@@ -219,10 +130,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 *              take the to part of the edges.
 	 * @return      true if any edge was removed.
 	 */
-	public boolean remove( V from, Collection<V> to ) {
-		def fe = edges[from]
-		fe != null && fe.removeAll( to )
-	}
+	boolean remove( V from, Collection<V> to )
 
 	/**
 	 * Removes edge (from, e)
@@ -233,21 +141,12 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  to   the from part of the edge.
 	 * @return      true if any edge was removed.
 	 */
-	public boolean remove( Collection<V> from, V to ) {
-		from.inject( false ) { r, f ->
-			def fe = edges[f]
-			(fe != null && fe.remove( to )) || r
-		}
-	}
+	boolean remove( Collection<V> from, V to )
 
 	/**
 	 * Clears the graph of all edges.
 	 */
-	public void clearEdges() {
-		edges.values().each {
-			it.clear()
-		}
-	}
+	void clearEdges()
 
 	//================================================================================
 	// Contains & edging operations.
@@ -258,29 +157,21 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 *
 	 * @return the number of vertrices in the graph.
 	 */
-	public int size() {
-		edges.size()
-	}
+	int size()
 
 	/**
 	 * Returns the number of edges in the graph.
 	 *
 	 * @return the number of edges in the graph.
 	 */
-	public int edges() {
-		edges.inject( 0 ) { acc, o ->
-			acc + o.value.size()
-		}
-	}
+	int edges()
 
 	/**
 	 * Returns true if the graph contains no elements.
 	 *
 	 * @return Returns true if the graph contains no elements.
 	 */
-	public boolean isEmpty() {
-		edges.isEmpty()
-	}
+	boolean isEmpty()
 
 	/**
 	 * Returns true if the graph contains vertex.
@@ -288,9 +179,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  vertex the vertex to check for.
 	 * @return        true if it is contained in the graph.
 	 */
-	public boolean contains( Object vertex ) {
-		edges.containsKey( vertex )
-	}
+	boolean contains( Object vertex )
 
 	/**
 	 * Returns true if the graph contains all vertrices.
@@ -298,14 +187,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  c the vertrices to check for.
 	 * @return   true if all vertrices are contained in the graph.
 	 */
-	public boolean containsAll( Collection<?> c ) {
-		for ( V v : c ) {
-			if ( !contains( v ) ) {
-				return false
-			}
-		}
-		return true
-	}
+	boolean containsAll( Collection<?> c )
 
 	/**
 	 * Returns true if the graph contains any of the vertrices.
@@ -313,14 +195,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  c the vertrices to check for.
 	 * @return   true if any of the vertrices are contained in the graph.
 	 */
-	public boolean containsAny( Collection<?> c ) {
-		for ( V v : c ) {
-			if ( contains( v ) ) {
-				return true
-			}
-		}
-		return false
-	}
+	boolean containsAny( Collection<?> c )
 
 	/**
 	 * Returns true if there's an edge (from, to),
@@ -334,10 +209,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  to   the to part of the edge.
 	 * @return      true if there's an edge (from, to).
 	 */
-	public boolean edged( V from, V to ) {
-		Set<V> e = edges[from]
-		return e != null && e.contains( to )
-	}
+	boolean edged( V from, V to )
 
 	/**
 	 * Returns true if there's an edge to all of to's.
@@ -347,17 +219,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  to   the collection of vertex/node.
 	 * @return      if it was edged to all of the to's.
 	 */
-	public boolean edgedAll( V from, Collection<V> to ) {
-		Set<V> e = edges[from]
-		if ( e != null ) {
-			for ( V v : to ) {
-				if ( !(v in e) ) {
-					return false
-				}
-			}
-		}
-		return true
-	}
+	boolean edgedAll( V from, Collection<V> to )
 
 	/**
 	 * Returns true if there's an edge to any of to's.
@@ -366,18 +228,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  to   the collection of vertex/node.
 	 * @return      if it was edged to any of the to's.
 	 */
-	public boolean edgedAny( V from, Collection<V> to ) {
-		Set<V> e = edges[from]
-		if ( e == null ) {
-			return false
-		}
-		for ( V v : to ) {
-			if ( v in e ) {
-				return true
-			}
-		}
-		return false
-	}
+	boolean edgedAny( V from, Collection<V> to )
 
 	//================================================================================
 	// Search and iteration operations.
@@ -388,9 +239,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 *
 	 * @return an array containing all of the vertrices.
 	 */
-	public V[] toArray() {
-		edges.keySet().toArray() as V[]
-	}
+	V[] toArray()
 
 	/**
 	 * Returns an array containing all of the vertrices as T[].
@@ -398,18 +247,30 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  a an array of type T[].
 	 * @return   an array containing all of the vertrices as T[].
 	 */
-	public <T> T[] toArray( T[] a ) {
-		edges.keySet().toArray( a )
-	}
+	public <T> T[] toArray( T[] a )
 
 	/**
 	 * Returns an iterator over the vertrices in the collection.
 	 *
 	 * @return Returns the iterator.
 	 */
-	public Iterator<V> iterator() {
-		edges.keySet().iterator()
-	}
+	Iterator<V> iterator()
+
+	/**
+	 * Returns an iterable starting from first node
+	 * using the DFS algorithm.
+	 *
+	 * @return the iterable.
+	 */
+	Iterable<V> depthFirst()
+
+	/**
+	 * Returns an iterable starting from first node
+	 * using the BFS algorithm.
+	 *
+	 * @return the iterable.
+	 */
+	Iterable<V> breadthFirst()
 
 	/**
 	 * Returns an iterable starting from vertex/node
@@ -418,9 +279,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  vertex the starting vertex/node.
 	 * @return        the iterable.
 	 */
-	public Iterable<V> depthFirst( V vertex ) {
-		return { new DepthFirstIterator( this, vertex ) }
-	}
+	Iterable<V> depthFirst( V vertex )
 
 	/**
 	 * Returns an iterable starting from vertex/node
@@ -429,9 +288,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  vertex the starting vertex/node.
 	 * @return        the iterable.
 	 */
-	public Iterable<V> breadthFirst( V vertex ) {
-		return { new BreadthFirstIterator( this, vertex ) }
-	}
+	Iterable<V> breadthFirst( V vertex )
 
 	/**
 	 * Returns all the vertrices that
@@ -440,9 +297,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  vertex the vertex/node.
 	 * @return        the outgoing vertrices.
 	 */
-	public Set<V> outs( V vertex ) {
-		edges[vertex]//.asImmutable()
-	}
+	Set<V> outs( V vertex )
 
 	/**
 	 * Returns all the vertrices that
@@ -451,15 +306,7 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  vertex the vertex/node.
 	 * @return        the ingoing vertrices.
 	 */
-	public Set<V> ins( V vertex ) {
-		Set<V> set = [] as Set<V>
-		edges.each { v, o ->
-			if ( v != vertex && vertex in o ) {
-				set << v
-			}
-		}
-		return set
-	}
+	Set<V> ins( V vertex )
 
 	//================================================================================
 	// Degree operations.
@@ -479,21 +326,14 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  vertex the vertex to return out-degree for.
 	 * @return        out-degree for vertex.
 	 */
-	public int outDegree( V vertex ) {
-		Set<V> e = edges[vertex]
-		return e == null ? -1 : e.size()
-	}
+	int outDegree( V vertex )
 
 	/**
 	 * Returns the out-degree for all vertrices in the graph.
 	 *
 	 * @return the map of vertex -> out-degree.
 	 */
-	public Map<V, Integer> outDegree() {
-		edges.keySet().collectEntries {
-			[(it): outDegree( it )]
-		}
-	}
+	Map<V, Integer> outDegree()
 
 	/**
 	 * Returns the in-degree for vertex.
@@ -509,21 +349,12 @@ class DirectedAcyclicGraph<V> implements Collection<V> {
 	 * @param  vertex the vertex to return in-degree for.
 	 * @return        in-degree for vertex.
 	 */
-	public int inDegree( V vertex ) {
-			edges.containsKey( vertex )
-		?	edges.count { k, s -> k != vertex && vertex in s }
-		:	-1
-	}
+	int inDegree( V vertex )
 
 	/**
 	 * Returns the in-degree for all vertrices in the graph.
 	 *
 	 * @return the map of vertex -> in-degree.
 	 */
-	public Map<V, Integer> inDegree() {
-		Set<V> k = edges.keySet()
-		Map<V, Integer>	r = k.collectEntries { [(it): 0] }
-		k.each { f -> edges[f].each { t -> r[t]++ } }
-		return r
-	}
+	Map<V, Integer> inDegree()
 }

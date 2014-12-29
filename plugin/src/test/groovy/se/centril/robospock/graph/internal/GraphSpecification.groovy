@@ -14,36 +14,22 @@
  * limitations under the License.
  */
 
-package se.centril.robospock.internal.graph
+package se.centril.robospock.graph.internal
+
+import se.centril.robospock.graph.DirectedAcyclicGraph
 
 import spock.lang.Specification
 
 /**
- * Tests {@link BreadthFirstIterator}.
+ * Base class for graph specifications.
  *
  * @author Centril <twingoow@gmail.com> / Mazdak Farrokhzad.
- * @since 2014-12-26
+ * @since 2014-12-27
  */
-class BreadthFirstIteratorSpecification extends GraphIteratorSpecification {
-	def "bfsIterator"() {
-		when:
-			graph()
-		then:
-			r == (new BreadthFirstIterator( g, s )).collect()
-		where:
-			s	|| r
-			1	|| (1..11) + [14] + (12..13)
-			2	|| [2] + (6..7) + (10..11) + [14]
-			3	|| [3] + (7..8) + [14] + (12..13)
-			4	|| [4] + (8..9) + (12..14)
-			5	|| [5]
-			6	|| [6] + (10..11) + [14]
-			7	|| [7, 14]
-			8	|| [8] + (12..14)
-			9	|| [9]
-			10	|| [10, 14]
-			11	|| [11, 14]
-			12	|| [12, 14]
-			13	|| [13, 14]
+class GraphSpecification extends Specification {
+	DirectedAcyclicGraph<Integer> g
+
+	def setup() {
+		g = new DirectedAcyclicGraphImpl<Integer>()
 	}
 }

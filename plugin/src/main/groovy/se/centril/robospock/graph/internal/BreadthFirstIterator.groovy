@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package se.centril.robospock.internal.graph
+package se.centril.robospock.graph.internal
+
+import se.centril.robospock.graph.DirectedAcyclicGraph
 
 /**
  * {@link BreadthFirstIterator} iterates the graph,
