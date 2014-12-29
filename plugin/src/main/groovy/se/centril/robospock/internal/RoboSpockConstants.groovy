@@ -73,7 +73,7 @@ class RoboSpockConstants {
 	private static final String 		RE_FIXTASK_BASE			= 'robospockFixRobolectricBugs'
 	private static final String 		RE_FIXTASK_GROUP		= 'robospockFixRobolectricBugs'
 	private static final List<String>	ANDROID_TARGET_VERSION	= ['android:targetSdkVersion="', '"']
-	private static final int			ANDROID_FIX_VERSION		= 18
+	private static final int			ANDROID_FIX_VERSION		= 21 // Build.VERSION_CODES.LOLLIPOP
 
 	private static final String			TEST_JVM_MIN_HEAP_SIZE	= "128m"
 	private static final String			TEST_JVM_MAX_HEAP_SIZE	= "1024m"
