@@ -50,6 +50,7 @@ public class BuildType {
 public class Variant {
 	BuildType buildType
 	String name
+	String dirName = 'dir'
 }
 
 /**
@@ -76,9 +77,8 @@ class VariantImplSpecification extends RoboSpockSpecification {
 			t.name == TASK_NAME_BASE + nc
 			t.description == TASK_DESCRIPTION_UNIT + v.name + '.'
 			t.class.name == RoboSpockTest.name + '_Decorated'
-			t.variant == v
+			t.var == var
 			t.config == c
-			t.sourceSet == ss
 			var.sourceSet == ss
 			var.testCompile == p.configurations[ss.compileConfigurationName]
 			var.testRuntime == p.configurations[ss.runtimeConfigurationName]

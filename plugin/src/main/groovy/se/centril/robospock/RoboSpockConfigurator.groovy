@@ -279,13 +279,15 @@ class RoboSpockConfigurator {
 			end = quote( attr[1] ),
 			pattern = ~/$start(\d{1,2})$end}/
 
-		cfg.variants.each { variant ->
-			def dir = variant.dirName,
+		variants().each { vertex ->
+			def v = vertex.variant,
+				dir = v.dirName,
 				copier = android.tasks.create(
-					name: RE_FIXTASK_BASE + variant.name.capitalize(),
+					name: RE_FIXTASK_BASE + v.name.capitalize(),
 					group: RE_FIXTASK_GROUP
 				)
-			variant.getOutputs()[0].processResources.finalizedBy copier
+
+			v.getOutputs()[0].processResources.finalizedBy copier
 			copier << {
 				// Library: Copy manifest, MANIFEST_PATH -> BUNDLES_PATH
 				def bundlesPath = "$aBuildDir/$BUNDLES_PATH/$dir/"
@@ -338,35 +340,61 @@ class RoboSpockConfigurator {
 			aarPath = new File( buildDir, AAR_PATH ),
 			libsPath = new File( buildDir, LIBS_PATH )
 
-		// Doing this for every variant!
-		cfg.variants.each { variant ->
+		// Doing this for every variant in graph!
+		variants().each { vertex ->
+			def v = vertex.variant
+
 			// First zipify the android project iself:
 			// Create zip2jar task if not present & make compileJava depend on it.
 			Task jarTask = android.tasks.create(
-				name: JAR_TASK_BASE + variant.name.capitalize(),
+				name: JAR_TASK_BASE + v.name.capitalize(),
 				group: JAR_TASK_GROUP,
 				description: JAR_TASK_DESCRIPTION,
 				type: Zip
 			) {
-				dependsOn variant.javaCompile
-				from new File( buildDir, CLASSES_PATH + variant.dirName )
+				dependsOn v.javaCompile
+				from new File( buildDir, CLASSES_PATH + v.dirName )
 				destinationDir = libsPath
 				extension = JAR_EXT
 			}
 			tester.tasks.compileTestJava.dependsOn( jarTask )
 
 			// Add zipified as dependency.
-			testCompile( tester.fileTree( dir: libsPath, include: JAR_WILDCARD ) )
+			variantCompile( vertex, tester.fileTree( dir: libsPath, include: JAR_WILDCARD ) )
 
 			// This handles android libraries via exploded-aars:
 			JAR_DIR_WILDCARD.each { dir ->
-				testCompile( tester.fileTree( dir: aarPath, include: dir + JAR_WILDCARD ) )
+				variantCompile( vertex, tester.fileTree( dir: aarPath, include: dir + JAR_WILDCARD ) )
 			}
 
 			// Add all project dependencies as dependencies for tester.
 			getSubprojects( android ).findAll { !isLibrary( it ) }.each { proj ->
-				testCompile( proj )
+				variantCompile( vertex, proj )
 			}
+
+			//
+			//variantCompile( vertex, vertex.sourceSet.output )
+		}
+	}
+
+	/**
+	 * Returns the list of "variants" containing actual android variants.
+	 *
+	 * @return the list of variants.
+	 */
+	private Collection<RoboSpockVariant> variants() {
+		cfg.graph.findAll { it.variant != null }
+	}
+
+	/**
+	 * Adds to the testCompile of the variant.
+	 *
+	 * @param v   the "variant".
+	 * @param dep the dependency.
+	 */
+	private void variantCompile( RoboSpockVariant v, Object dep ) {
+		cfg.tester.dependencies {
+			add( v.testCompile.name, dep )
 		}
 	}
 
@@ -375,7 +403,7 @@ class RoboSpockConfigurator {
 	 *
 	 * @param dep the dependency.
 	 */
-	private void testCompile( dep ) {
+	private void testCompile( Object dep ) {
 		cfg.tester.dependencies { it.testCompile dep }
 	}
 

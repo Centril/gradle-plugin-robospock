@@ -33,7 +33,7 @@ public interface RoboSpockVariant {
 	 *
 	 * @return the variant.
 	 */
-	public def getVariant()
+	public Object getVariant()
 
 	/**
 	 * Returns the "testCompile" configuration for the variant.

@@ -16,7 +16,9 @@
 
 package se.centril.robospock
 
+import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.Test
 
@@ -34,22 +36,21 @@ class RoboSpockTest extends Test {
 	 * Properties:
 	 */
 	RoboSpockConfiguration config
-
-	def variant
-	def sourceSet
+	RoboSpockVariant var
 
 	/**
 	 * Configures RoboSpock test additions.
 	 * Running is not optional to make the tests work.
 	 *
-	 * @param  cfg the configuration object to use.
+	 * @param cfg the configuration object to use.
 	 */
 	public void configure() {
 		/*
 		 * Setup classpath:
 		 */
-	    testClassesDir	= sourceSet.output.classesDir
-	    classpath		= sourceSet.runtimeClasspath
+		def ss = var.sourceSet
+		testClassesDir	= ss.output.classesDir
+		classpath		= ss.runtimeClasspath
 
 		/*
 		 * Setup for Roboelectric:
@@ -111,7 +112,7 @@ class RoboSpockTest extends Test {
 	 * @param post the string after buildType.
 	 * @return the {@link java.io.File}
 	 */
-	private File buildPath( proj, pre, post ) {
-		return new File( proj.buildDir, "${INTERMEDIATES_PATH}${pre}/${config.buildTypes[0]}/${post}" )
+	private File buildPath( Project p, String pre, String post ) {
+		return new File( p.buildDir, "${INTERMEDIATES_PATH}${pre}/${var.variant.dirName}/${post}" )
 	}
 }

@@ -42,7 +42,7 @@ public final class VariantImpl implements RoboSpockVariant {
 	Configuration testRuntime
 	SourceSet sourceSet
 	Task task
-	def variant
+	Object variant
 
 	/**
 	 * {@link VariantImpl} constructor for test task with variant.
@@ -52,14 +52,13 @@ public final class VariantImpl implements RoboSpockVariant {
 	 * @param  v    the variant.
 	 */
 	public VariantImpl( Project p, RoboSpockConfiguration cfg, v ) {
-		def name = normalizeName( v.name )
+		String name = normalizeName( v.name )
 		variant = v
 		sourceSet = createSourceSet( p, name )
 		bindConfigurations( p )
 		task = createTask( p, name, TASK_DESCRIPTION_UNIT + v.name, RoboSpockTest ) {
 			config = cfg
-			variant = v
-			sourceSet = this.sourceSet
+			var = this
 			configure()
 		}
 	}
