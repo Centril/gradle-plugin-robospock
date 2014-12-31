@@ -64,7 +64,8 @@ public class RoboSpockConfigurator {
 	 * Configures everything.
 	 */
 	public void configure() {
-		[cfg.&verify, this.&applyGroovy, this.&addJCenter,
+		[cfg.&verify,
+		 this.&evaluationOrder, this.&applyGroovy, this.&addJCenter,
 		 this.&addAndroidRepositories, this.&addDependencies, this.&fixSupportLib,
 		 this.&setupGraph, this.&copyAndroidDependencies, this.&fixRobolectricBugs,
 		 cfg.&executeAfterConfigured]
@@ -87,6 +88,14 @@ public class RoboSpockConfigurator {
 	//================================================================================
 	// Private API:
 	//================================================================================
+
+	/**
+	 * Makes the tester projects evaluation
+	 * depends on the android project.
+	 */
+	private void evaluationOrder() {
+		cfg.tester.evaluationDependsOn( cfg.android.path )
+	}
 
 	/**
 	 * Applies the groovy plugin to the tester.
@@ -324,7 +333,8 @@ public class RoboSpockConfigurator {
 	 * Copies the android project dependencies to this project.
 	 */
 	private void copyAndroidDependencies() {
-		def android = cfg.android,
+		def compileTJ = cfg.tester.tasks.compileTestJava,
+			android = cfg.android,
 			buildDir = android.buildDir,
 			aarPath = new File( buildDir, AAR_PATH ),
 			libsPath = new File( buildDir, LIBS_PATH )
@@ -338,21 +348,21 @@ public class RoboSpockConfigurator {
 
 			// First zipify the android project iself:
 			// Create zip2jar task if not present & make compileJava depend on it.
+			def jarPath = new File( libsPath, v.dirName )
 			Task jarTask = android.tasks.create(
 				name: JAR_TASK_BASE + v.name.capitalize(),
 				group: JAR_TASK_GROUP,
 				description: JAR_TASK_DESCRIPTION,
-				type: Zip
-			) {
+				type: Zip ) {
 				dependsOn v.javaCompile
 				from new File( buildDir, CLASSES_PATH + v.dirName )
-				destinationDir = libsPath
+				destinationDir = jarPath
 				extension = JAR_EXT
 			}
-			cfg.tester.tasks.compileTestJava.dependsOn( jarTask )
+			compileTJ.dependsOn( jarTask )
 
 			// Add zipified as dependency.
-			variantCompile( var, libsPath, [''] )
+			variantCompile( var, jarPath, [''] )
 
 			// This handles android libraries via exploded-aars:
 			variantCompile( var, aarPath, JAR_DIR_WILDCARD )
