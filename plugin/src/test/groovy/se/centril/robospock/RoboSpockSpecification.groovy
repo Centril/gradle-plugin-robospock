@@ -23,6 +23,9 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
 
+import se.centril.robospock.fixtures.BuildType
+import se.centril.robospock.fixtures.Variant
+
 import spock.lang.Specification
 
 /**
@@ -43,9 +46,13 @@ abstract class RoboSpockSpecification extends Specification {
 		root = ProjectBuilder.builder().withName( 'root' ).build()
 	}
 
-	protected def setupDefault() {
-		android = androidProject()
-		config = new RoboSpockConfiguration( android )
+	protected Variant variant( String vName, String btName ) {
+		[name: vName, buildType: [name: btName] as BuildType] as Variant
+	}
+
+	protected def setupDefault( boolean library = false ) {
+		android = library ? androidLibraryProject() : androidProject()
+		config = new RoboSpockConfiguration( android, new RoboSpockVersion() )
 		return android
 	}
 
