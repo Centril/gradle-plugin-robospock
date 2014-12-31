@@ -27,6 +27,7 @@ import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.plugins.JavaBasePlugin
 
 import static java.util.regex.Pattern.quote
+import static java.beans.Introspector.decapitalize
 
 import static se.centril.robospock.internal.RoboSpockUtils.*
 import static se.centril.robospock.internal.RoboSpockConstants.*
@@ -41,9 +42,9 @@ import se.centril.robospock.graph.internal.UnmodifiableDAGImpl
  * this is where all the action happens.
  *
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
- * @since Nov, 19, 2014
+ * @since 2014-11-19
  */
-class RoboSpockConfigurator {
+public class RoboSpockConfigurator {
 	RoboSpockConfiguration cfg
 
 	//================================================================================
@@ -55,7 +56,7 @@ class RoboSpockConfigurator {
 	 *
 	 * @param config a {@link RoboSpockConfiguration} object to configure with.
 	 */
-	RoboSpockConfigurator( RoboSpockConfiguration config ) {
+	public RoboSpockConfigurator( RoboSpockConfiguration config ) {
 		this.cfg = config
 	}
 
@@ -70,6 +71,19 @@ class RoboSpockConfigurator {
 		 	.each { it() }
 	}
 
+	/**
+	 * Adds the jcenter() to buildscript repositories.
+	 *
+	 * @param  cfg the configuration.
+	 */
+	public static void addJCenterBuildScript( RoboSpockConfiguration cfg ) {
+		cfg.perspective.buildscript {
+			repositories {
+				jcenter()
+			}
+		}
+	}
+
 	//================================================================================
 	// Private API:
 	//================================================================================
@@ -77,14 +91,14 @@ class RoboSpockConfigurator {
 	/**
 	 * Applies the groovy plugin to the tester.
 	 */
-	def applyGroovy() {
+	private void applyGroovy() {
 		cfg.tester.apply plugin: 'groovy'
 	}
 
 	/**
 	 * Makes sure that android-sdk-manager pulls support libs.
 	 */
-	def fixSupportLib() {
+	private void fixSupportLib() {
 		// Roboelectric needs this, make com.jakewharton.sdkmanager download it.
 		testCompile( MAVEN_ANDROID_SUPPORT )
 		cfg.tester.ext.android = cfg.android.android
@@ -121,50 +135,23 @@ class RoboSpockConfigurator {
 	/**
 	 * Adds the jcenter() to repositories.
 	 */
-	def addJCenter() {
+	private void addJCenter() {
 		cfg.tester.repositories {
 			jcenter()
 		}
 	}
 
 	/**
-	 * Adds the jcenter() to buildscript repositories.
-	 */
-	def static addJCenterBuildScript( RoboSpockConfiguration cfg ) {
-		cfg.perspective.buildscript {
-			repositories {
-				jcenter()
-			}
-		}
-	}
-
-	/**
 	 * Adds all the dependencies of this configuration to {@link Project}.
 	 */
-	def addDependencies() {
-		def deps = [
-			MAVEN_GROOVY	+ cfg.groovyVersion,
-			MAVEN_SPOCK		+ cfg.spockVersion,
-			MAVEN_ROBOSPOCK	+ cfg.robospockVersion
-		]
-
-		cfg.cglibVersion = cfg.cglibVersion.trim()
-		if ( cfg.cglibVersion ) {
-			deps << MAVEN_CGLIB	+ cfg.cglibVersion
-		}
-
-		cfg.objenesisVersion = cfg.objenesisVersion.trim()
-		if ( cfg.objenesisVersion ) {
-			deps << MAVEN_OBJNESIS + cfg.objenesisVersion
-		}
-
-		deps.each( this.&testCompile )
+	private void addDependencies() {
+		testCompile( cfg.version.dependencies() )
 	}
 
 	/**
 	 * Adds the android SDK dir repositories to {@link RoboSpockConfiguration#android}.
 	 */
-	def addAndroidRepositories() {
+	private void addAndroidRepositories() {
 		def sdkDir = cfg.sdkDir()
 		MAVEN_ANDROID_REPOS.each { path ->
 			cfg.tester.repositories {
@@ -176,7 +163,7 @@ class RoboSpockConfigurator {
 	/**
 	 * Sets up the variant graph.
 	 */
-	def setupGraph() {
+	private void setupGraph() {
 		def p = cfg.tester,
 			vars = cfg.variants,
 			// The graph:
@@ -232,14 +219,12 @@ class RoboSpockConfigurator {
 		 * Add for each PF = product flavor:
 		 * Library projects don't have PFs.
 		 */
-		if ( !isLibrary( cfg.android ) ) {
-			cfg.variants.collectMany { it.productFlavors }.unique().each { pf ->
-				def vPf = extend( [root], pf, new VariantImpl( p, pf, TASK_DESCRIPTION_PRODUCT_FLAVOR + pf.name ) )
-				// Add for each T = (PF, BT):
-				cfg.buildTypes.each { bt ->
-					def name = pf.name + bt.capitalize()
-					extend( [bt, vPf], name, new VariantImpl( p, name, TASK_DESCRIPTION_PF_BT + name ) )
-				}
+		cfg.variants.collectMany { it.productFlavors }.unique().each { pf ->
+			def vPf = extend( [root], pf, new VariantImpl( p, pf, TASK_DESCRIPTION_PRODUCT_FLAVOR + pf.name ) )
+			// Add for each T = (PF, BT):
+			cfg.buildTypes.each { bt ->
+				def name = pf.name + bt.capitalize()
+				extend( [bt, vPf], name, new VariantImpl( p, name, TASK_DESCRIPTION_PF_BT + name ) )
 			}
 		}
 
@@ -252,7 +237,7 @@ class RoboSpockConfigurator {
 
 			// Either extend from the BT or every T = (PF, BT).
 			// In the latter case, since T extends BT, extending T => extending BT:
-			if ( isLibrary( cfg.android ) || var.productFlavors.isEmpty() ) {
+			if ( var.productFlavors.isEmpty() ) {
 				extend( [mapping[bt] ?: root], var.name, v )
 			} else {
 				var.productFlavors.each { pf ->
@@ -270,14 +255,10 @@ class RoboSpockConfigurator {
 	/**
 	 * Fixes/addresses various bugs in robolectric.
 	 */
-	def fixRobolectricBugs() {
+	private void fixRobolectricBugs() {
 		def android = cfg.android,
 			aBuildDir = "${android.buildDir}",
-			tBuildDir = "${cfg.tester.buildDir}",
-			attr = ANDROID_TARGET_VERSION,
-			start = quote( attr[0] ),
-			end = quote( attr[1] ),
-			pattern = ~/$start(\d{1,2})$end}/
+			tBuildDir = "${cfg.tester.buildDir}"
 
 		variants().each { vertex ->
 			def v = vertex.variant,
@@ -292,24 +273,16 @@ class RoboSpockConfigurator {
 				// Library: Copy manifest, MANIFEST_PATH -> BUNDLES_PATH
 				def bundlesPath = "$aBuildDir/$BUNDLES_PATH/$dir/"
 				android.copy {
-					from( bundlesPath ) {
-						include MANIFEST_FILE
-					}
+					from( bundlesPath ) { include MANIFEST_FILE }
 					into( "$aBuildDir/$MANIFEST_PATH/$dir/" )
 				}
 
 				// Manifest: Clamp any SDK VERSION in the eyes of
 				// roboelectric to API level ANDROID_FIX_VERSION.
 				android.copy {
-					from( aBuildDir ) {
-						include "$MANIFEST_PATH/$dir/$MANIFEST_FILE"
-					}
+					from( aBuildDir ) { include "$MANIFEST_PATH/$dir/$MANIFEST_FILE" }
 					into( tBuildDir )
-					filter {
-						it.replaceFirst( pattern, {
-							return start + clampTargetVersion( Integer.parseInt( it[1] ) ) + end
-						} )
-					}
+					filter { clampTargetVersion( it ) }
 				}
 
 				// Library: Copy BUNDLES_PATH -> RES_PATH
@@ -322,27 +295,46 @@ class RoboSpockConfigurator {
 	}
 
 	/**
+	 * Clamps the targetSdkVersion attribute in manifest.
+	 *
+	 * @param  content the contents of manifest as string.
+	 * @return         the contents but with targetSdkVersion attribute changed.
+	 */
+	private String clampTargetVersion( String content ) {
+		def	attr = ANDROID_TARGET_VERSION
+		def	(start, end) = attr
+		def	(sq, eq) = attr.collect { quote( it ) }
+		def	pattern = ~/$sq(\d{1,2})$eq/
+		content.replaceFirst( pattern, { r ->
+			start + clampTargetVersion( Integer.parseInt( r[1] ) ) + end
+		} )
+	}
+
+	/**
 	 * Clamps the targetSdkVersion.
 	 *
 	 * @param v the targetSdkVersion.
+	 * @return  the clamped targetSdkVersion.
 	 */
-	private void clampTargetVersion( int v ) {
-		v > ANDROID_FIX_VERSION ? v : ANDROID_FIX_VERSION
+	private int clampTargetVersion( int v ) {
+		v > ANDROID_FIX_VERSION ? ANDROID_FIX_VERSION : v
 	}
 
 	/**
 	 * Copies the android project dependencies to this project.
 	 */
-	def copyAndroidDependencies() {
-		def tester = cfg.tester,
-			android = cfg.android,
+	private void copyAndroidDependencies() {
+		def android = cfg.android,
 			buildDir = android.buildDir,
 			aarPath = new File( buildDir, AAR_PATH ),
 			libsPath = new File( buildDir, LIBS_PATH )
 
+		// testCompile will end up in testCompile of variants transitively.
+		testCompile( librarySubprojects( android, 'compile' ) )
+
 		// Doing this for every variant in graph!
-		variants().each { vertex ->
-			def v = vertex.variant
+		variants().each { var ->
+			def v = var.variant
 
 			// First zipify the android project iself:
 			// Create zip2jar task if not present & make compileJava depend on it.
@@ -357,23 +349,17 @@ class RoboSpockConfigurator {
 				destinationDir = libsPath
 				extension = JAR_EXT
 			}
-			tester.tasks.compileTestJava.dependsOn( jarTask )
+			cfg.tester.tasks.compileTestJava.dependsOn( jarTask )
 
 			// Add zipified as dependency.
-			variantCompile( vertex, tester.fileTree( dir: libsPath, include: JAR_WILDCARD ) )
+			variantCompile( var, libsPath, [''] )
 
 			// This handles android libraries via exploded-aars:
-			JAR_DIR_WILDCARD.each { dir ->
-				variantCompile( vertex, tester.fileTree( dir: aarPath, include: dir + JAR_WILDCARD ) )
-			}
+			variantCompile( var, aarPath, JAR_DIR_WILDCARD )
 
 			// Add all project dependencies as dependencies for tester.
-			getSubprojects( android ).findAll { !isLibrary( it ) }.each { proj ->
-				variantCompile( vertex, proj )
-			}
-
-			//
-			//variantCompile( vertex, vertex.sourceSet.output )
+			def compile = decapitalize( var.testCompile.name - 'test' )
+			variantCompile( var, librarySubprojects( android, compile ) )
 		}
 	}
 
@@ -388,13 +374,34 @@ class RoboSpockConfigurator {
 
 	/**
 	 * Adds to the testCompile of the variant.
+	 * The added dependency is a list of filetree's in the directory = path
+	 * with the include prefixed by each in includePrefixes.
 	 *
-	 * @param v   the "variant".
-	 * @param dep the dependency.
+	 * @param var             the "variant"
+	 * @param path            the directory.
+	 * @param includePrefixes the prefix of the include.
 	 */
-	private void variantCompile( RoboSpockVariant v, Object dep ) {
-		cfg.tester.dependencies {
-			add( v.testCompile.name, dep )
+	private void variantCompile( RoboSpockVariant var, File path, List<String> includePrefixes ) {
+		def t = cfg.tester
+		variantCompile( var, t.fileTree(
+			dir: path,
+			include: includePrefixes.collect { it + JAR_WILDCARD }
+		) )
+	}
+
+	/**
+	 * Adds to the testCompile of the variant.
+	 *
+	 * @param var the "variant".
+	 * @param dep the dependency or list of dependencies.
+	 */
+	private void variantCompile( RoboSpockVariant var, Object dep ) {
+		if ( dep instanceof Collection ) {
+			dep.each { variantCompile( var, it ) }
+		} else {
+			cfg.tester.dependencies {
+				add( var.testCompile.name, dep )
+			}
 		}
 	}
 
@@ -408,20 +415,17 @@ class RoboSpockConfigurator {
 	}
 
 	/**
-	 * Returns a set of all the decendant projects to the android project.
+	 * Returns a set of all the decendant library projects to the android project.
 	 * They are decendants in the sense that they are project dependencies.
 	 *
-	 * @param project the {@link org.gradle.api.Project}.
-	 * @param configuration the configuration to look in for sub projects, default = compile.
-	 * @return the sub{@link org.gradle.api.Project}s.
+	 * @param	project		the {@link org.gradle.api.Project}.
+	 * @param	conf		the configuration to look in for sub projects.
+	 * @return	the subprojecs.
 	 */
-	private Set<Project> getSubprojects( Project project, configuration = 'compile' ) {
+	private Set<Project> librarySubprojects( Project project, String conf ) {
 		collectWhileNested( project ) { p ->
-			p.configurations.all.find { c -> c.name == configuration }
-			 .allDependencies
-			 .findResults {
-				it instanceof ProjectDependency ? it.dependencyProject : null
-			}
-		}
+			p.configurations[conf].allDependencies
+			 .findResults { it instanceof ProjectDependency ? it.dependencyProject : null }
+		}.findAll { !isLibrary( it ) }
 	}
 }

@@ -60,31 +60,41 @@ import static se.centril.robospock.internal.RoboSpockConstants.*
  *
  * <pre>{@code
  * robospock {
- *		android          = project( ':app' )<br/>
- *		buildType        << 'release'
- *		spockVersion     = '0.7-groovy-2.0'
- *	    groovyVersion    = '2.3.6'
- *		cglibVersion     = '3.1'
- *		objenesisVersion = '2.1'
+ *		android		  = project( ':app' )<br/>
+ *		buildType	  << 'release'
+ *		version {
+ *			spock     = '0.7-groovy-2.0'
+ *	    	groovy    = '2.3.6'
+ *		    cglib     = '3.1'
+ *		    objenesis = '2.1'
+ *		}
  * }
  * }</pre></p>
  *
  * @see RoboSpockConfiguration#android
  * @see RoboSpockConfiguration#tester
  * @see RoboSpockConfiguration#buildType
- * @see RoboSpockConfiguration#spockVersion
- * @see RoboSpockConfiguration#groovyVersion
- * @see RoboSpockConfiguration#cglibVersion
- * @see RoboSpockConfiguration#objenesisVersion
  * @see RoboSpockConfiguration#perspective
  * @see RoboSpockConfiguration#afterConfigured
- * @see RoboSpockConfiguration#robospockTask
+ * @see RoboSpockConfiguration#graph
+ * @see RoboSpockConfiguration#version
+ * @see RoboSpockVersion#spock
+ * @see RoboSpockVersion#groovy
+ * @see RoboSpockVersion#cglib
+ * @see RoboSpockVersion#objenesis
  * @since 2014-10-01
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
  */
 class RoboSpockPlugin implements Plugin<Project> {
 	void apply( Project project ) {
+		RoboSpockVersion ver = new RoboSpockVersion()
+		RoboSpockConfiguration cfg = project.extensions.create(
+			ROBOSPOCK_EXTENSION, RoboSpockConfiguration,
+			project, ver )
+
+		cfg.extensions.add( 'version', ver )
+
 		// Create & execute.
-		RoboSpockAction.perform( project.extensions.create( ROBOSPOCK_EXTENSION, RoboSpockConfiguration, project ) )
+		RoboSpockAction.perform( cfg )
 	}
 }

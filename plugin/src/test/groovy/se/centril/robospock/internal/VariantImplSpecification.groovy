@@ -32,26 +32,15 @@ import static se.centril.robospock.internal.VariantImpl.*
 import se.centril.robospock.RoboSpockConfiguration
 import se.centril.robospock.RoboSpockTest
 import se.centril.robospock.RoboSpockVariant
+import se.centril.robospock.RoboSpockVersion
 
+import se.centril.robospock.fixtures.DTask
+import se.centril.robospock.fixtures.BuildType
+import se.centril.robospock.fixtures.Variant
 import se.centril.robospock.RoboSpockSpecification
 
 import spock.lang.Shared
 import javax.inject.Inject;
-
-public class DTask extends Test {
-	@Inject
-	public DTask() {}
-	@TaskAction
-	public void taskAction() {}
-}
-public class BuildType {
-	String name
-}
-public class Variant {
-	BuildType buildType
-	String name
-	String dirName = 'dir'
-}
 
 /**
  * Tests {@link VariantImpl}
@@ -64,9 +53,9 @@ class VariantImplSpecification extends RoboSpockSpecification {
 		given:
 			def a = androidProject()
 			def p = testProject()
-			def c = new RoboSpockConfiguration( p )
+			def c = new RoboSpockConfiguration( p, new RoboSpockVersion() )
 			c.android = a
-			def v = [name: 'debug', buildType: [name: 'debug'] as BuildType] as Variant
+			def v = variant( 'debug', 'debug' )
 			def nc = v.name.capitalize()
 		when:
 			def var = new VariantImpl( p, c, v )

@@ -19,6 +19,7 @@ package se.centril.robospock
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.plugins.ExtensionAware
 
 import java.util.regex.Pattern
 
@@ -31,7 +32,6 @@ import se.centril.robospock.graph.DirectedAcyclicGraph
  * {@link RoboSpockConfiguration} determines how
  * the {@link RoboSpockPlugin} should be used.
  *
- * @version 0.1
  * @since 2014-10-01
  * @author Mazdak Farrokhzad <twingoow@gmail.com>
  */
@@ -53,42 +53,15 @@ class RoboSpockConfiguration {
 	Project tester
 
 	/**
+	 * (Optional) version holds the versions of dependencies.
+	 */
+	RoboSpockVersion version
+
+	/**
 	 * (Optional) The buildTypes being tested.
 	 * Default = ['debug']
 	 */
 	List<String> buildTypes	= ['debug']
-
-	/**
-	 * (Optional) The robospock version to use.
-	 * Default: Latest known version (0.5.+)
-	 */
-	String robospockVersion = '0.5.+'
-
-	/**
-	 * (Optional) The spock-framework version to use.
-	 * Default: Latest known version (0.7-groovy-2.0)
-	 */
-	String spockVersion     = '0.7-groovy-2.0'
-
-	/**
-	 * (Optional) The groovy version to use.
-	 * Default: Latest known version (2.3.6).
-	 */
-	String groovyVersion    = '2.3.6'
-
-	/**
-	 * (Optional) The clib version to use as dependency.
-	 * Default: Latest known version (3.1).
-	 * If the dependency is unwanted, set the string to empty.
-	 */
-	String cglibVersion = '3.1'
-
-	/**
-	 * (Optional) The objenesis version to use as dependency.
-	 * Default: Latest known version (2.1).
-	 * If the dependency is unwanted, set the string to empty.
-	 */
-	String objenesisVersion = '2.1'
 
 	/**
 	 * You can provide closures that will be run after
@@ -111,18 +84,12 @@ class RoboSpockConfiguration {
 	/**
 	 * Constructs the configuration.
 	 *
-	 * @param proj the project to begin configuration with.
-	 * @param inverse if true, proj honors {@link #RoboSpockUtils#isAndroid(Project)},
-	 *  otherwise it's assumed to be the tester.
+	 * @param proj	the project to begin configuration with.
+	 * @param ver	the version configuration object.
 	 */
-	public RoboSpockConfiguration( Project proj ) {
-		this.perspective = proj
-
-		if ( isAndroid( proj ) ) {
-			setAndroid( proj )
-		} else {
-			setTester( proj )
-		}
+	public RoboSpockConfiguration( Project proj, RoboSpockVersion ver ) {
+		setPerspective( proj )
+		setVersion( ver )
 	}
 
 	/**
@@ -194,7 +161,7 @@ class RoboSpockConfiguration {
 	}
 
 	//================================================================================
-	// Public non-DSL API: - These parts are internal and are subject to change.
+	// Public non-DSL API: - These parts are internal and are subject to change:
 	//================================================================================
 
 	/**
@@ -234,7 +201,7 @@ class RoboSpockConfiguration {
 	 *
 	 * @return the variants.
 	 */
-	public def getVariants() {
+	public List<Object> getVariants() {
 		def android = this.android.android
 		def v = isLibrary( this.android ) ? android.libraryVariants : android.applicationVariants
 		v = v.collect().findAll { it.buildType.name in this.buildTypes }
@@ -242,20 +209,60 @@ class RoboSpockConfiguration {
 	}
 
 	//================================================================================
-	// Internal logic, setters, etc.
+	// Deny public access:
 	//================================================================================
 
+	/**
+	 * Constructs the configuration, for testing purposes.
+	 */
+	protected RoboSpockConfiguration() {}
+
+	/**
+	 * Sets list of afterConfigured closure.
+	 *
+	 * @param l the list.
+	 */
 	protected void setAfterConfigured( List<Closure> l ) {
 		this.afterConfigured = l
 	}
 
+	/**
+	 * Sets the graph.
+	 *
+	 * @param g the graph.
+	 */
 	protected void setGraph(DirectedAcyclicGraph<RoboSpockVariant> g ) {
 		this.graph = g
 	}
 
+	/**
+	 * Sets the perspective using setAndroid
+	 * or setTester depending on context.
+	 *
+	 * @param p the perspective.
+	 */
 	protected void setPerspective( Project p ) {
 		this.perspective = p
+
+		if ( isAndroid( p ) ) {
+			setAndroid( p )
+		} else {
+			setTester( p )
+		}
 	}
+
+	/**
+	 * Sets the version.
+	 *
+	 * @param v the version.
+	 */
+	protected void setVersion( RoboSpockVersion v ) {
+		this.version = v
+	}
+
+	//================================================================================
+	// Internal logic, setters, etc.
+	//================================================================================
 
 	/**
 	 * Executes all afterConfigured closures.
@@ -299,12 +306,10 @@ class RoboSpockConfiguration {
 		}
 
 		def parent = this.android.parent
-		if ( !aspirant ) {
-			// Second, look in siblings.
-			if ( parent ) {
-				aspirant = parent.childProjects.values().find {
-					this.android.path == tryPath( it.path ) && notAndroid( it )
-				}
+		// Second, look in siblings.
+		if ( !aspirant && parent ) {
+			aspirant = parent.childProjects.values().find {
+				this.android.path == tryPath( it.path ) && notAndroid( it )
 			}
 		}
 
