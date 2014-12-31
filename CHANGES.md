@@ -1,6 +1,12 @@
 CHANGELOG
 =====================
 
+2.0.0
+---------------------
++ **FEATURE:** Now possible to test product flavors, see: [README](README.md).
++ **BREAKING:** `robospock.robospockVersion`, `robospock.spockVersion`, `robospock.groovyVersion`, `robospock.cglibVersion`, `robospock.objenesisVersion` moved into: `robospock.version`.
++ **BREAKING:** `robospock.robospock` removed in favor of `robospock.graph`
+
 1.0.1
 ---------------------
 + Fixed issue with gradle versions X.Y.Z where Z > 0. See **[pull request #13](/../../pull/13).**
