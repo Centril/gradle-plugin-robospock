@@ -237,12 +237,65 @@ class RoboSpockConfigurator {
 		def tester = cfg.tester
 		def android = cfg.android
 
-		def dependencies = android.configurations.compile.dependencies
+		tester.dependencies {
+			compile android.configurations.compile.dependencies
+		}
 
-		dependencies.each { dep ->
+		def projDep = getSubprojects( android ) + android
+
+		def zip2jarDependsTask = "compile${cfg.buildType.capitalize()}Java"
+
+		// Filter out duplicates due to project dependencies
+		projDep.unique().each { proj ->
+			def libsPath = new File( android.buildDir, 'libs' )
+			def aarPath = new File( android.buildDir, 'intermediates/exploded-aar/' )
+
+			// Create zip2jar task & make compileJava depend on it.
+			Task zip2jar = proj.tasks.create( name: ZIP_2_JAR_TASK, type: Zip ) {
+				dependsOn zip2jarDependsTask
+				description ZIP_2_JAR_DESCRIPTION
+				from new File( android.buildDir, "intermediates/classes/${cfg.buildType}" )
+				destinationDir = libsPath
+				extension = "jar"
+			}
+			tester.tasks.compileTestJava.dependsOn( zip2jar )
+
+			// Add all jars frm zip2jar + exploded-aar:s to dependencies.
 			tester.dependencies {
-				compile dep
+				testCompile tester.fileTree( dir: libsPath, include: "*.jar" )
+				testCompile tester.fileTree( dir: aarPath, include: ['*/*/*/*.jar'] )
+				testCompile tester.fileTree( dir: aarPath, include: ['*/*/*/*/*.jar'] )
 			}
 		}
+	}
+
+	/**
+	 * Returns all sub projects to the android project.
+	 *
+	 * @param project the {@link org.gradle.api.Project}.
+	 * @return the sub{@link org.gradle.api.Project}s.
+	 */
+	def List<Project> getSubprojects( Project project ) {
+		def projects = []
+		extractSubprojects( project, projects )
+		return projects
+	}
+
+	/**
+	 * Recursively extracts all dependency-subprojects from project.
+	 *
+	 * @param libraryProject the library {@link Project} to search in.
+	 * @param projects the list of {@link Project}s to add to.
+	 * @return the sub{@link Project}s.
+	 */
+	def extractSubprojects( Project libraryProject, List<Project> projects ) {
+		Configuration compile = libraryProject.configurations.all.find { it.name == 'compile' }
+
+		def projDeps = compile.allDependencies
+				.findAll { it instanceof ProjectDependency }
+				.collect { ((ProjectDependency) it).dependencyProject }
+
+		projDeps.each { extractSubprojects( it, projects ) }
+		projects.addAll( projDeps )
 	}
 }

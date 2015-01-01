@@ -17,6 +17,10 @@
 ['android-sdk-manager', 'com.android.application']
 	.each { apply plugin: it }
 
+dependencies {
+	compile 'com.jakewharton.timber:timber:2.5.0'
+}
+
 android {
 	compileSdkVersion 20
 	buildToolsVersion "20"
