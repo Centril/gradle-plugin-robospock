@@ -236,6 +236,11 @@ class RoboSpockConfigurator {
 	def copyAndroidDependencies() {
 		def tester = cfg.tester
 		def android = cfg.android
+
+		tester.dependencies {
+			compile android.configurations.compile.dependencies
+		}
+
 		def projDep = getSubprojects( android ) + android
 
 		def zip2jarDependsTask = "compile${cfg.buildType.capitalize()}Java"
