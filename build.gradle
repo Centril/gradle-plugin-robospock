@@ -32,7 +32,7 @@ allprojects {
 		strictCheck = true
 		ignoreFailures = false
 		useDefaultMappings = true
-		ext.year = '2014'
+		ext.year = '2015'
 	}
 }
 
